@@ -1,3 +1,5 @@
+-- no, I'm not going to comment it yet
+
 import qualified Data.Set as S
 import Control.Monad.State
 import Data.List
@@ -138,7 +140,6 @@ conv12Code :: Code1 -> Code2
 conv12Code = mconcat . fmap (f . conv12Line) . lines1 . removeTextCode1 evalFnName where
   f (a, b) = Code2 [b] [a]
 
--- bool is whether it's a type / ctor (true) or a variable (false)
 convVarHs :: Var -> String
 convVarHs = ("v" <>)
 
