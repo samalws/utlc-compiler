@@ -73,6 +73,7 @@ F--  = n -> n (h -> r -> h (null? r null (false `: r)) (true `: F-- r)) null;   
 F+   = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) F++ id `$ tn `F+ tm)) n) m; [O(log (max m n))]
 F*   = n -> m -> n (hn -> tn -> hn m F0   `F+   tn  `F*  false `: m) F0;                               [O(log n * log m)]
 Ffactorial = n -> F0? n F1 `$  n `F* Ffactorial `$ F-- n;
+[TODO subtraction, division, modulo]
 
 [convert to native int; we assume the compiler provides us with zero, succ, plus, and times functions on native ints]
 F->bn = n -> zero -> succ -> plus -> times -> n (h -> t -> h (succ zero) zero `plus succ (succ zero) `times F->bn t zero succ plus times) zero;
@@ -88,7 +89,7 @@ F8 = F++ F7;
 F9 = F++ F8;
 F10 = F++ F9;
 
-[20 factorial in .02 seconds!]
-myNum  = Ffactorial `$ F2 `F* F10;
+[100 factorial in .035 seconds!]
+myNum  = Ffactorial `$ F10 `F* F10;
 
 main = F->bn myNum;
