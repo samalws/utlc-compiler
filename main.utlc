@@ -92,4 +92,6 @@ F10 = F++ F9;
 [100 factorial in .035 seconds!]
 myNum  = Ffactorial `$ F10 `F* F10;
 
-main = F->bn myNum;
+myStr = "Abc";
+
+main = F->bn `$ car myStr id 0;
