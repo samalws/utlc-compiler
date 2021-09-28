@@ -7,29 +7,27 @@ import Text.Parsec.String
 import Compiler.Compiler
 
 exprParser :: Parser Expr0
-exprParser = try appParser <|> try parenExprParser <|> try lamParser <|> try varParser
+exprParser = try appsParser <|> try lamParser
 
-parenExprParser = do
-  char '('
-  expr <- exprParser
-  char ')'
-  pure expr
 lamParser = do
   arg <- many1 letter
   many1 space
   string "->"
   many1 space
-  exp <- exprParser
-  pure $ Lam0 arg exp
+  expr <- exprParser
+  pure $ Lam0 arg expr
+subAppsParser = try parenExprParser <|> try varParser
+appsParser = do
+  (expr0:exprs) <- sepBy subAppsParser (many1 space)
+  pure $ foldl App0 expr0 exprs
+parenExprParser = do
+  char '('
+  expr <- exprParser
+  char ')'
+  pure expr
 varParser = do
   var <- many1 letter
   pure $ Var0 var
-subAppParser = try parenExprParser <|> try lamParser <|> try varParser
-appParser = do
-  exp1 <- subAppParser
-  many1 space
-  exp2 <- exprParser
-  pure $ App0 exp1 exp2
 
 lineParser :: Parser Line0
 lineParser = do
