@@ -9,6 +9,13 @@ comp = f -> g -> x -> f `$ g x;
 [BOOLEANS]
 true  = const;
 false = ignore;
+!     = a -> a false true;
+&     = a -> b -> a b false;
+|     = a -> b -> a true b;
+!&    = ! `.2 &;
+!|    = ! `.2 |;
+xor   = a -> b -> (a `| b) `& (a `!& b);
+xnor  = ! `.2 xor;
 
 [TUPLES]
 ,   = x -> y -> f -> f x y;
@@ -31,8 +38,15 @@ mapSnd = f -> t -> fst t `, f (snd t);
 ^  = n -> m -> * m `n 1;
 0? = n -> const false `n true;
 factorial = n -> (0? n) 1 (n `* factorial `$ -- n);
-5  = ++ `$ ++ `$ ++ `$ ++ `$ ++ 0;
-10 = 5 `+ 5;
+2 = ++ 1;
+3 = ++ 2;
+4 = ++ 3;
+5 = ++ 4;
+6 = ++ 5;
+7 = ++ 6;
+8 = ++ 7;
+9 = ++ 8;
+10 = ++ 9;
 
 [MAYBE]
 none  = f -> x -> x;
@@ -41,14 +55,40 @@ none? = m -> m (const false) true;
 some? = m -> m (const true) false;
 
 [SCOTT ENCODED LISTS]
-null  = f -> x -> x;
-:     = h -> t -> f -> x -> f h t;
-null? = l -> l (const `$ const false) true;
-car   = l -> l (some `.2 const) none;
-cdr   = l -> l ignore none;
-@     = l -> n -> 0? n (car l) (cdr l `@ -- n);
+null   = f -> x -> x;
+:      = h -> t -> f -> x -> f h t;
+null?  = l -> l (const `$ const false) true;
+car    = l -> l (some `.2 const) none;
+cdr    = l -> l ignore none;
+@      = l -> n -> 0? n (car l) (cdr l `@ -- n);
+single = h -> h `: null;
 
-myList = 0 `: 1 `: 5 `: 10 `: factorial 5 `: factorial 10 `: null;
+[FAST NATS - LIST OF BOOLEANS - O(log n)]
+[precondition for a lot of this: there is a true at the end of the list]
+F0   = null;
+F++  = n -> n (h -> r -> h (false `: F++ r) (true `: r)) (single true);                                [O(log n)]
+F0?  = null?;
+F->n = n -> n (h -> r -> (h 1 0) `+ (2 `* F->n r)) 0;  [convert to church encoded zero/succ ints]
+F--  = n -> n (h -> r -> h (null? r null (false `: r)) (true `: F-- r)) null;                          [O(log n)]
+F+   = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) F++ id `$ tn `F+ tm)) n) m; [O(log (max m n))]
+F*   = n -> m -> n (hn -> tn -> hn m F0   `F+   tn  `F*  false `: m) F0;                               [O(log n * log m)]
+Ffactorial = n -> F0? n F1 `$  n `F* Ffactorial `$ F-- n;
 
+[convert to native int; we assume the compiler provides us with zero, succ, plus, and times functions on native ints]
+F->bn = n -> zero -> succ -> plus -> times -> n (h -> t -> h (succ zero) zero `plus succ (succ zero) `times F->bn t zero succ plus times) zero;
 
-main = (myList `@ 5) id 10;
+F1 = F++ F0;
+F2 = F++ F1;
+F3 = F++ F2;
+F4 = F++ F3;
+F5 = F++ F4;
+F6 = F++ F5;
+F7 = F++ F6;
+F8 = F++ F7;
+F9 = F++ F8;
+F10 = F++ F9;
+
+[20 factorial in .02 seconds!]
+myNum  = Ffactorial `$ F2 `F* F10;
+
+main = F->bn myNum;
