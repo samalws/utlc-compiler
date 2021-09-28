@@ -1,6 +1,6 @@
 -- no, I'm not going to comment it yet
 
-module Compiler.Compiler where
+module Compiler.CodeConversion where
 
 import qualified Data.Set as S
 import Control.Monad.State

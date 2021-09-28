@@ -2,9 +2,9 @@
 
 module Compiler.Parser where
 
+import Compiler.CodeConversion
 import Text.Parsec
 import Text.Parsec.String
-import Compiler.Compiler
 import Data.Maybe
 
 allowedSpecialChars = "~!@#$%^&*_+|:,<./?"

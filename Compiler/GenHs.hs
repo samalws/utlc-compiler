@@ -1,6 +1,6 @@
 module Compiler.GenHs where
 
-import Compiler.Compiler
+import Compiler.CodeConversion
 import Data.List
 import Data.Char
 

@@ -1,4 +1,4 @@
-import Compiler.Compiler
+import Compiler.CodeConversion
 import Compiler.GenHs
 import Compiler.Parser
 import Text.Parsec
