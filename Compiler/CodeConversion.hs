@@ -7,14 +7,17 @@ import Control.Monad.State
 
 type Var = String
 
+-- base code, entered by the user
 data Expr0 = Lam0 Var Expr0 | App0 Expr0 Expr0 | Var0 Var                       deriving (Show, Eq)
 data Line0 = Line0 { declName0 :: Var, declExpr0 :: Expr0 }                     deriving (Show, Eq)
 data Code0 = Code0 { lines0 :: [Line0] }                                        deriving (Show, Eq)
 
+-- lambda lifted code
 data Expr1 = App1 Expr1 Expr1 | Var1 Var                                        deriving (Show, Eq)
 data Line1 = Line1 { declName1 :: Var, declArgs1 :: [Var], declExpr1 :: Expr1 } deriving (Show, Eq)
 data Code1 = Code1 { lines1 :: [Line1] }                                        deriving (Show, Eq)
 
+-- defunctionalized code
 data Expr2 = App2 Expr2 Expr2 | Var2 Var | Ctor2 Int Var                        deriving (Show, Eq)
 data Line2 = Line2 { declName2 :: Var, declArgs2 :: [Var], declExpr2 :: Expr2 } deriving (Show, Eq)
 data Code2 = Code2 { lines2 :: [Line2], types2 :: [(Var, Int)] }                deriving (Show, Eq)
@@ -87,7 +90,7 @@ conv01ExprEnd v1 v2 a@(Lam0 _ _) = do
   (lamVarsList,convedA) <- conv01Expr v2 a
   newName <- getUnusedVar1 $ v1 <> v2 <> freeVars <> S.fromList lamVarsList
   addToCode1 $ Line1 newName (freeVarsList <> lamVarsList) convedA
-  pure $ foldr (\var exp -> App1 exp (Var1 var)) (Var1 newName) freeVarsList
+  pure $ foldl (\exp var -> App1 exp (Var1 var)) (Var1 newName) freeVarsList
 
 conv01Line :: S.Set Var -> Line0 -> State Code1 Line1
 conv01Line v2 (Line0 s a) = do

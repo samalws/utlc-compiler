@@ -19,9 +19,7 @@ snd = t -> t ignore;
 +  = n -> m -> ++  `n m;
 *  = n -> m -> + m `n 0;
 ^  = n -> m -> * m `n 1;
-[ FOUND AN ERROR: if you substitute in the value of _decFun, it stops working correctly ]
--- = n -> fst `: _decFun `n (0 `, 0);
-_decFun = t -> snd t `, ++ (snd t);
+-- = n -> fst `: (t -> snd t `, ++ (snd t)) `n (0 `, 0);
 =0 = n -> const false `n true;
 
 factorial = n -> (=0 n) 1 (n `* factorial `: -- n);
