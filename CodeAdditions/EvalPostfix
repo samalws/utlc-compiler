@@ -1,0 +1,7 @@
+
+veval PSucc_0 (PI n) = (PI (n+1))
+veval PAdd_0 x = PAdd_1 x
+veval (PAdd_1 (PI x)) (PI y) = PI (x + y)
+veval PMul_0 x = PMul_1 x
+veval (PMul_1 (PI x)) (PI y) = PI (x*y)
+dePI (PI n) = n
