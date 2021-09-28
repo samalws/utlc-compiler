@@ -7,8 +7,7 @@ import Text.Parsec
 import Text.Parsec.String
 import Data.Maybe
 
-allowedSpecialChars = "~!@#$%^&*_+|:,<./?"
--- TO ADD: =, \, -, >, maybe ;
+allowedSpecialChars = "~!@#$%^&*_+|:,<./?->=\\"
 
 commentParser :: Parser ()
 commentParser = char '[' >> many (noneOf "]") >> char ']' >> pure ()
@@ -20,7 +19,11 @@ whitespace :: Parser ()
 whitespace = many (commentParser <|> (space >> pure ())) >> pure ()
 
 varParser :: Parser Var
-varParser = many1 $ alphaNum <|> oneOf allowedSpecialChars
+varParser = do
+  var <- many1 $ alphaNum <|> oneOf allowedSpecialChars
+  if (var == "->") then fail "Unexpected ->" else return ()
+  if (var == "=")  then fail "Unexpected ="  else return ()
+  return var
 
 exprParser :: Parser Expr0
 exprParser = try appsParser <|> try lamParser

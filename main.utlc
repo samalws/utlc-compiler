@@ -20,11 +20,11 @@ snd = t -> t ignore;
 *  = n -> m -> + m `n 0;
 ^  = n -> m -> * m `n 1;
 [ FOUND AN ERROR: if you substitute in the value of _decFun, it stops working correctly ]
-dec = n -> fst `: _decFun `n (0 `, 0);
+-- = n -> fst `: _decFun `n (0 `, 0);
 _decFun = t -> snd t `, ++ (snd t);
-is0? = n -> const false `n true;
+=0 = n -> const false `n true;
 
-factorial = n -> (is0? n) 1 (n `* factorial `: dec n);
+factorial = n -> (=0 n) 1 (n `* factorial `: -- n);
 
 5  = ++ `: ++ `: ++ `: ++ `: ++ 0;
 10 = 5 `+ 5;
