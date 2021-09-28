@@ -7,8 +7,13 @@ import Text.Parsec.String
 import Compiler.Compiler
 
 exprParser :: Parser Expr0
-exprParser = try lamParser <|> try appParser <|> try varParser
+exprParser = try appParser <|> try parenExprParser <|> try lamParser <|> try varParser
 
+parenExprParser = do
+  char '('
+  expr <- exprParser
+  char ')'
+  pure expr
 lamParser = do
   arg <- many1 letter
   many1 space
@@ -16,16 +21,15 @@ lamParser = do
   many1 space
   exp <- exprParser
   pure $ Lam0 arg exp
-appParser = do
-  char '('
-  exp1 <- exprParser
-  many1 space
-  exp2 <- exprParser
-  char ')'
-  pure $ App0 exp1 exp2
 varParser = do
   var <- many1 letter
   pure $ Var0 var
+subAppParser = try parenExprParser <|> try lamParser <|> try varParser
+appParser = do
+  exp1 <- subAppParser
+  many1 space
+  exp2 <- exprParser
+  pure $ App0 exp1 exp2
 
 lineParser :: Parser Line0
 lineParser = do
@@ -34,6 +38,8 @@ lineParser = do
   char '='
   many1 space
   exp <- exprParser
+  spaces
+  char ';'
   spaces
   pure $ Line0 name exp
 
