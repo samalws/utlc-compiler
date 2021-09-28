@@ -3,14 +3,14 @@ id = x -> x;
 const = x -> y -> x;
 ignore = x -> y -> y;
 
-true = const;
+true  = const;
 false = ignore;
 
 ,   = x -> y -> f -> f x y;
 fst = t -> t const;
 snd = t -> t ignore;
 
-0  = ignore;
+0  = f -> x -> x;
 ++ = n -> f -> x -> f `n f x;
 1  = ++ 0;
 +  = n -> m -> ++  `n m;
