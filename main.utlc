@@ -1,7 +1,10 @@
 id = x -> x;
-:  = x -> x;
+$  = x -> x;
 const = x -> y -> x;
 ignore = x -> y -> y;
+comp = f -> g -> x -> f `$ g x;
+. = comp;
+.2 = f -> g -> x -> y -> f `id g x y;
 
 [BOOLEANS]
 true  = const;
@@ -14,23 +17,38 @@ snd = t -> t ignore;
 mapFst = f -> t -> f (fst t) `, snd t;
 mapSnd = f -> t -> fst t `, f (snd t);
 
-[NATURAL NUMBERS]
+[CHURCH ENCODED NATURAL NUMBERS]
 0  = f -> x -> x;
 1  = ++ 0;
 ++ = n -> f -> x -> f `n f x;
--- = n -> fst `: (t -> snd t `, ++ (snd t)) `n (0 `, 0);
+-- = n -> fst `$ (t -> snd t `, ++ (snd t)) `n (0 `, 0);
 +  = n -> m -> ++  `n m;
 -  = n -> m -> --  `m n;
 *  = n -> m -> + m `n 0;
-/% = n -> m -> (=0 (n `- m)) (0 `, n) (mapFst ++ `: (n `- m) `/% m);
-/  = n -> m -> fst `: n `/% m;
-%  = n -> m -> snd `: n `/% m;
+/% = n -> m -> (0? (n `- m)) (0 `, n) (mapFst ++ `$ (n `- m) `/% m);
+/  = n -> m -> fst `$ n `/% m;
+%  = n -> m -> snd `$ n `/% m;
 ^  = n -> m -> * m `n 1;
-=0 = n -> const false `n true;
-
-factorial = n -> (=0 n) 1 (n `* factorial `: -- n);
-
-5  = ++ `: ++ `: ++ `: ++ `: ++ 0;
+0? = n -> const false `n true;
+factorial = n -> (0? n) 1 (n `* factorial `$ -- n);
+5  = ++ `$ ++ `$ ++ `$ ++ `$ ++ 0;
 10 = 5 `+ 5;
 
-main = factorial 10;
+[MAYBE]
+none  = f -> x -> x;
+some  = a -> f -> x -> f a;
+none? = m -> m (const false) true;
+some? = m -> m (const true) false;
+
+[SCOTT ENCODED LISTS]
+null  = f -> x -> x;
+:     = h -> t -> f -> x -> f h t;
+null? = l -> l (const `$ const false) true;
+car   = l -> l (some `.2 const) none;
+cdr   = l -> l ignore none;
+@     = l -> n -> 0? n (car l) (cdr l `@ -- n);
+
+myList = 0 `: 1 `: 5 `: 10 `: factorial 5 `: factorial 10 `: null;
+
+
+main = (myList `@ 5) id 10;
