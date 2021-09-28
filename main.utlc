@@ -1,0 +1,29 @@
+id = x -> x
+const = x -> y -> x
+
+true = x -> y -> x
+false = x -> y -> y
+
+tup = x -> y -> f -> ((f x) y)
+fst = t -> (t x -> y -> x)
+snd = t -> (t x -> y -> y)
+
+zero = f -> x -> x
+succ = n -> f -> x -> ((n f) (f x))
+one = (succ zero)
+add = n -> m -> ((n succ) m)
+mul = n -> m -> ((n (add m)) zero)
+exp = n -> m -> ((n (mul m)) one)
+
+dec = n -> (fst ((n decFun) decBase))
+decFun = t -> ((tup (snd t)) (succ (snd t)))
+decBase = ((tup zero) zero)
+
+isZero = n -> ((n (const false)) true)
+
+factorial = n -> (((isZero n) one) ((mul n) (factorial (dec n))))
+
+five = (succ (succ (succ (succ (succ zero)))))
+ten = ((add five) five)
+
+main = (factorial ten)
