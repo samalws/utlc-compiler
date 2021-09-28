@@ -7,6 +7,12 @@ import Text.Parsec.String
 import Compiler.Compiler
 import Data.Maybe
 
+allowedSpecialChars = "~!@#$%^&*_+|:,<./?"
+-- TO ADD: =, \, -, >, maybe ;
+
+varParser :: Parser Var
+varParser = many1 $ alphaNum <|> oneOf allowedSpecialChars
+
 exprParser :: Parser Expr0
 exprParser = try appsParser <|> try lamParser
 
@@ -24,7 +30,7 @@ appsParser = do
   let nonBackticks = filter (not . isBacktickVar) exprs
   pure $ convList exprs Nothing
   where
-    subAppsParser = try parenExprParser <|> try varParser
+    subAppsParser = try parenExprParser <|> try varExprParser
     isBacktickVar (Var0 ('`':s)) = True
     isBacktickVar _ = False
     unBacktickVar (Var0 ('`':s)) = Var0 s
@@ -40,14 +46,14 @@ parenExprParser = do
   expr <- exprParser
   char ')'
   pure expr
-varParser = do
+varExprParser = do
   backtick <- maybe "" pure <$> optionMaybe (char '`')
-  var <- (backtick <>) <$> many1 letter
+  var <- (backtick <>) <$> varParser
   pure $ Var0 var
 
 lineParser :: Parser Line0
 lineParser = do
-  name <- many1 letter
+  name <- varParser
   many1 space
   char '='
   many1 space

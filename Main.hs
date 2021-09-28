@@ -1,4 +1,5 @@
 import Compiler.Compiler
+import Compiler.GenHs
 import Compiler.Parser
 import Text.Parsec
 import Data.Either
