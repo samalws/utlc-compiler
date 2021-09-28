@@ -11,15 +11,20 @@ false = ignore;
 ,   = x -> y -> f -> f x y;
 fst = t -> t const;
 snd = t -> t ignore;
+mapFst = f -> t -> f (fst t) `, snd t;
 
 [NATURAL NUMBERS]
 0  = f -> x -> x;
-++ = n -> f -> x -> f `n f x;
 1  = ++ 0;
-+  = n -> m -> ++  `n m;
-*  = n -> m -> + m `n 0;
-^  = n -> m -> * m `n 1;
+++ = n -> f -> x -> f `n f x;
 -- = n -> fst `: (t -> snd t `, ++ (snd t)) `n (0 `, 0);
++  = n -> m -> ++  `n m;
+-  = n -> m -> --  `m n;
+*  = n -> m -> + m `n 0;
+/% = n -> m -> (=0 (n `- m)) (0 `, n) (mapFst ++ `: (n `- m) `/% m);
+/  = n -> m -> fst `: n `/% m;
+%  = n -> m -> snd `: n `/% m;
+^  = n -> m -> * m `n 1;
 =0 = n -> const false `n true;
 
 factorial = n -> (=0 n) 1 (n `* factorial `: -- n);
