@@ -1,29 +1,30 @@
 id = x -> x;
 const = x -> y -> x;
+ignore = x -> y -> y;
 
-true = x -> y -> x;
-false = x -> y -> y;
+true = const;
+false = ignore;
 
 tup = x -> y -> f -> f x y;
-fst = t -> t (x -> y -> x);
-snd = t -> t (x -> y -> y);
+fst = t -> t const;
+snd = t -> t ignore;
 
 zero = f -> x -> x;
-succ = n -> f -> x -> n f (f x);
+succ = n -> f -> x -> f `n f x;
 one = succ zero;
-add = n -> m -> n succ m;
-mul = n -> m -> n (add m) zero;
-exp = n -> m -> n (mul m) one;
+add = n -> m -> succ `n m;
+mul = n -> m -> add m `n zero;
+exp = n -> m -> mul m `n one;
 
-dec = n -> fst (n decFun decBase);
-decFun = t -> tup (snd t) (succ (snd t));
+dec = n -> fst `id n decFun decBase;
+decFun = t -> snd t `tup succ (snd t);
 decBase = tup zero zero;
 
-isZero = n -> n (const false) true;
+isZero = n -> const false `n true;
 
-factorial = n -> (isZero n) one (mul n (factorial (dec n)));
+factorial = n -> (isZero n) one (n `mul factorial `id dec n);
 
-five = succ (succ (succ (succ (succ zero))));
+five = succ `id succ `id succ `id succ `id succ zero;
 ten = add five five;
 
 main = factorial ten;
