@@ -12,6 +12,7 @@ false = ignore;
 fst = t -> t const;
 snd = t -> t ignore;
 mapFst = f -> t -> f (fst t) `, snd t;
+mapSnd = f -> t -> fst t `, f (snd t);
 
 [NATURAL NUMBERS]
 0  = f -> x -> x;
