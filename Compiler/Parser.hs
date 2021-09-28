@@ -10,6 +10,15 @@ import Data.Maybe
 allowedSpecialChars = "~!@#$%^&*_+|:,<./?"
 -- TO ADD: =, \, -, >, maybe ;
 
+commentParser :: Parser ()
+commentParser = char '[' >> many (noneOf "]") >> char ']' >> pure ()
+
+whitespace1 :: Parser ()
+whitespace1 = many1 (commentParser <|> (space >> pure ())) >> pure ()
+
+whitespace :: Parser ()
+whitespace = many (commentParser <|> (space >> pure ())) >> pure ()
+
 varParser :: Parser Var
 varParser = many1 $ alphaNum <|> oneOf allowedSpecialChars
 
@@ -18,14 +27,14 @@ exprParser = try appsParser <|> try lamParser
 
 lamParser = do
   arg <- many1 letter
-  many1 space
+  whitespace1
   string "->"
-  many1 space
+  whitespace1
   expr <- exprParser
   pure $ Lam0 arg expr
 
 appsParser = do
-  exprs <- sepBy subAppsParser (many1 space)
+  exprs <- sepBy subAppsParser (whitespace1)
   let backticks    = filter        isBacktickVar  exprs
   let nonBackticks = filter (not . isBacktickVar) exprs
   pure $ convList exprs Nothing
@@ -54,13 +63,13 @@ varExprParser = do
 lineParser :: Parser Line0
 lineParser = do
   name <- varParser
-  many1 space
+  whitespace1
   char '='
-  many1 space
+  whitespace1
   exp <- exprParser
-  spaces
+  whitespace
   char ';'
-  spaces
+  whitespace
   pure $ Line0 name exp
 
 codeParser :: Parser Code0
@@ -68,8 +77,8 @@ codeParser = Code0 <$> many1 lineParser
 
 codeFileParser :: Parser Code0
 codeFileParser = do
-  spaces
+  whitespace
   code <- codeParser
-  spaces
+  whitespace
   eof
   pure code

@@ -3,24 +3,25 @@ id = x -> x;
 const = x -> y -> x;
 ignore = x -> y -> y;
 
+[BOOLEANS]
 true  = const;
 false = ignore;
 
+[TUPLES]
 ,   = x -> y -> f -> f x y;
 fst = t -> t const;
 snd = t -> t ignore;
 
+[NATURAL NUMBERS]
 0  = f -> x -> x;
 ++ = n -> f -> x -> f `n f x;
 1  = ++ 0;
 +  = n -> m -> ++  `n m;
 *  = n -> m -> + m `n 0;
 ^  = n -> m -> * m `n 1;
-
-dec = n -> fst `: _decFun `n _decBase;
+[ FOUND AN ERROR: if you substitute in the value of _decFun, it stops working correctly ]
+dec = n -> fst `: _decFun `n (0 `, 0);
 _decFun = t -> snd t `, ++ (snd t);
-_decBase = 0 `, 0;
-
 is0? = n -> const false `n true;
 
 factorial = n -> (is0? n) 1 (n `* factorial `: dec n);
