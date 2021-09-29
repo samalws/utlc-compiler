@@ -43,7 +43,7 @@ appsParser = do
   let nonBackticks = filter (not . isBacktickVar) exprs
   pure $ convList exprs Nothing
   where
-    subAppsParser = try parenExprParser <|> try varExprParser <|> try stringLitParser
+    subAppsParser = try parenExprParser <|> try stringParseParser <|> try varExprParser <|> try stringLitParser
     isBacktickVar (Var0 ('`':s)) = True
     isBacktickVar _ = False
     unBacktickVar (Var0 ('`':s)) = Var0 s
@@ -68,6 +68,11 @@ stringLitParser = do
   str <- many $ noneOf "\""
   char '"'
   pure $ stringLit str
+stringParseParser = do
+  p <- varParser
+  char '`'
+  a <- varParser
+  pure $ Var0 ("p" <> p <> "!") `App0` stringLit a
 
 lineParser :: Parser Line0
 lineParser = do
