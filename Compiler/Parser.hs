@@ -30,7 +30,7 @@ exprParser :: Parser Expr0
 exprParser = try appsParser <|> try lamParser
 
 lamParser = do
-  arg <- many1 letter
+  arg <- varParser
   whitespace1
   string "->"
   whitespace1

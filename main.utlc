@@ -16,6 +16,8 @@ false = ignore;
 !|    = ! `.2 |;
 xor   = a -> b -> (a `| b) `& (a `!& b);
 xnor  = ! `.2 xor;
+b=    = xnor;
+b!=   = xor;
 
 [TUPLES]
 ,   = x -> y -> f -> f x y;
@@ -23,6 +25,8 @@ fst = t -> t const;
 snd = t -> t ignore;
 mapFst = f -> t -> f (fst t) `, snd t;
 mapSnd = f -> t -> fst t `, f (snd t);
+,=     = =a -> =b -> t1 -> t2 -> (fst t1 `=a fst t2) `& (snd t1 `=b snd t2);
+,!=    = =a -> =b -> ! `.2 ,= =a =b;
 
 [CHURCH ENCODED NATURAL NUMBERS]
 0  = f -> x -> x;
@@ -47,12 +51,17 @@ factorial = n -> (0? n) 1 (n `* factorial `$ -- n);
 8 = ++ 7;
 9 = ++ 8;
 10 = ++ 9;
+n= = a -> b -> (0? `$ a `- b) `& (0? `$ b `- a);
+n!= = ! `.2 n=;
+[TODO n>, n<, ...]
 
 [MAYBE]
 none  = f -> x -> x;
 some  = a -> f -> x -> f a;
 none? = m -> m (const false) true;
 some? = m -> m (const true) false;
+m=    = =a -> m1 -> m2 -> m1 (a1 -> m2 (a2 -> a1 `=a a2) false) (none? m2);
+m!=   = =a -> ! `.2 m= =a;
 
 [SCOTT ENCODED LISTS]
 null   = f -> x -> x;
@@ -62,6 +71,11 @@ car    = l -> l (some `.2 const) none;
 cdr    = l -> l ignore none;
 @      = l -> n -> 0? n (car l) (cdr l `@ -- n);
 single = h -> h `: null;
+l=     = =a -> l1 -> l2 -> l1 (h1 -> t1 -> l2 (h2 -> t2 -> (h1 `=a h2) `& (l= =a t1 t2)) false) (none? l2);
+l!=    = =a -> ! `.2 l= =a;
+l+     = l1 -> l2 -> l1 (h -> t -> h `: t `l+ l2) l2; [concat lists; O(n)]
+rev    = l -> l (h -> r -> rev r `l+ single h) null;  [reverse list; O(n^2)?]
+[TODO >, <]
 
 [FAST NATS - LIST OF BOOLEANS - O(log n)]
 [precondition for a lot of this: there is a true at the end of the list]
@@ -71,7 +85,10 @@ F0?  = null?;
 F->n = n -> n (h -> r -> (h 1 0) `+ (2 `* F->n r)) 0;  [convert to church encoded zero/succ ints]
 F--  = n -> n (h -> r -> h (null? r null (false `: r)) (true `: F-- r)) null;                          [O(log n)]
 F+   = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) F++ id `$ tn `F+ tm)) n) m; [O(log (max m n))]
+F-   = n -> m -> F->n m F-- n; [VERY BAD REDO THIS]
 F*   = n -> m -> n (hn -> tn -> hn m F0   `F+   tn  `F*  false `: m) F0;                               [O(log n * log m)]
+F=   = l= b=;
+F!=  = ! `.2 F=;
 Ffactorial = n -> F0? n F1 `$  n `F* Ffactorial `$ F-- n;
 [TODO subtraction, division, modulo]
 
@@ -89,9 +106,10 @@ F8 = F++ F7;
 F9 = F++ F8;
 F10 = F++ F9;
 
-[100 factorial in .035 seconds!]
-myNum  = Ffactorial `$ F10 `F* F10;
+[PARSERS]
+[px returns maybe x; px! returns x]
+[TODO pF]
+_pF! = s -> s (c -> r -> (c `F- car "0" id F0) `F+ _pF! r `F* F10) F0;
+pF! = s -> _pF! `$ rev s; [TODO how to deal with helper functions?]
 
-myStr = "Abc";
-
-main = F->bn `$ car myStr id 0;
+main = F->bn `$ pF! "1234567";
