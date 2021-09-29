@@ -109,8 +109,9 @@ F10 = F++ F9;
 
 [PARSERS]
 [px returns maybe x; px! returns x]
+pc! = s -> car s id F0;
 [TODO pF]
-_pF! = s -> s (c -> r -> (c `F- car "0" id F0) `F+ _pF! r `F* F10) F0;
+_pF! = s -> s (c -> r -> (c `F- c`0) `F+ _pF! r `F* F10) F0;
 pF! = s -> _pF! `$ rev s; [TODO how to deal with helper functions?]
 pn! = s -> F->n `$ pF! s;
 
