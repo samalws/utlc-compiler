@@ -1,0 +1,26 @@
+want IO system to be universal regardless of which operations we choose to use
+want IO system to support operations on whatever target platform we're compiling to (eg no embedding assembly code in utlc code)
+want IO system to be based on IO values rather than side effects that happen while we're computing
+want IO system to be as simple as possible
+
+IO a b = a, (b -> IO a b)
+choosing a to be maybe string and b to be maybe string, we can make string IO where the program chooses when it wants to input and when it wants to output
+we can combine different IO effects by using eithers (tagged unions)
+we can add forks by making one of the options for a be IO a b
+we can add an option to terminate the program by making a be a maybe type, where none indicates that we should terminate and anything else is normal IO
+we can allow the program return what input it wants to take (if any) by having a be (action, desiredInput)
+
+example of repeated print/input IO where a = b = string:
+main = "" , mainLoop
+mainLoop = inp -> inp , mainLoop
+this IO repeatedly reads input and then echoes it back
+
+we can have the compiler feed IO options into main, if we want to have the type of a be flexible and not known when writing the program:
+main = ioFuncs -> mainLoop ioFuncs "x"
+mainLoop = ioFuncs -> toPrint -> (ioFuncs "print" toPrint) , (inp -> mainLoop ioFuncs toPrint)
+(this IO prints "x" and then repeatedly echoes back its input)
+when we do it this way, it doesn't matter what exact IO functions we have available, as long as one of them is "print"
+
+another example program (a countdown that doesn't take input):
+main = ioFuncs -> mainLoop 10
+mainLoop = ioFuncs -> n -> if (n == 0) (ioFuncs "terminate" , _) else ((ioFuncs "print" n , ioFuncs "noInputWanted") , (_ -> mainLoop ioFuncs (n-1)))

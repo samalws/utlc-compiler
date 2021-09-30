@@ -1,3 +1,8 @@
+soonest todos:
+-string IO
+-import files
+-private fns  _=
+
 compiler:
 -import files using {filename}
 -more compilation stuff like compiling to an imperative lang instead of haskell
@@ -16,3 +21,4 @@ utlc code:
 -n-tuples (ie fixed size arrays) with associated operations
 -self interpreter (ie convert string to code)
 -nRev, nConst, nIgnore
+-something like a "function matrix" to compose for multi-input multi-output functions
