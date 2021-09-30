@@ -6,9 +6,9 @@ import Data.Either
 import System.Process
 
 main = do
-  typePostfix <- readFile "CodeAdditions/TypePostfix"
-  evalPostfix <- readFile "CodeAdditions/EvalPostfix"
-  mainFn      <- readFile "CodeAdditions/MainFn"
+  typePostfix <- readFile "Additions/TypePostfix"
+  evalPostfix <- readFile "Additions/EvalPostfix"
+  mainFn      <- readFile "Additions/MainFn"
 
   text <- readFile "main.utlc"
   putStrLn text
