@@ -71,10 +71,11 @@ car    = l -> l (some `.2 const) none;
 cdr    = l -> l ignore none;
 @      = l -> n -> 0? n (car l) (cdr l `@ -- n);
 single = h -> h `: null;
-l=     = =a -> l1 -> l2 -> l1 (h1 -> t1 -> l2 (h2 -> t2 -> (h1 `=a h2) `& (l= =a t1 t2)) false) (none? l2);
+l=     = =a -> l1 -> l2 -> l1 (h1 -> t1 -> l2 (h2 -> t2 -> (h1 `=a h2) `& (l= =a t1 t2)) false) (null? l2);
 l!=    = =a -> ! `.2 l= =a;
 l+     = l1 -> l2 -> l1 (h -> t -> h `: t `l+ l2) l2; [concat lists; O(n)]
-rev    = l -> l (h -> r -> rev r `l+ single h) null;  [reverse list; O(n^2)?]
+rev    = l -> l (h -> r -> rev r `l+ single h) null;  [reverse list; O(n^2)?] [TODO make this into O(n); this is doable if you have an accumulator]
+len    = l -> l (h -> r -> F++ `$ len r) F0;
 [TODO >, <]
 
 [FAST NATS - LIST OF BOOLEANS - O(log n)]
@@ -86,12 +87,25 @@ F->n = n -> n (h -> r -> (h 1 0) `+ (2 `* F->n r)) 0;  [convert to church encode
 n->F = n -> n F++ F0;
 F--  = n -> n (h -> r -> h (null? r null (false `: r)) (true `: F-- r)) null;                          [O(log n)]
 F+   = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) F++ id `$ tn `F+ tm)) n) m; [O(log (max m n))]
-F-   = n -> m -> F->n m F-- n; [VERY BAD REDO THIS]
 F*   = n -> m -> n (hn -> tn -> hn m F0   `F+   tn  `F*  false `: m) F0;                               [O(log n * log m)]
 F=   = l= b=;
 F!=  = ! `.2 F=;
+F<=  = n -> m -> F0? `$ n `F- m;
+F>=  = n -> m -> m `F<= n;
+F<   = ! `.2 F>=;
+F>   = ! `.2 F<=;
 Ffactorial = n -> F0? n F1 `$  n `F* Ffactorial `$ F-- n;
-[TODO subtraction, division, modulo]
+
+[TODO division, modulo]
+
+[SUBTRACTION OF FAST NATS]
+00F- = tn -> tm -> (tn `_F- tm) (x -> some `$ false `: x) none;
+01F- = tn -> tm -> F-- (false `: tn) `_F- F-- (true `: tm);
+10F- = tn -> tm -> (tn `_F- tm) (x -> some `$ true `: x) none;
+11F- = tn -> tm -> (tn `_F- tm) (x -> some `$ false `: x) none;
+__F- = hn -> tn -> hm -> tm -> (hn (hm 11F- 10F-) (hm 01F- 00F-)) tn tm;
+_F-  = n -> m -> m (hm -> tm -> n (hn -> tn -> __F- hn tn hm tm) none) (some n);
+F-   = n -> m -> (n `_F- m) id F0;
 
 [convert to native int; we assume the compiler provides us with zero, succ, plus, and times functions on native ints]
 F->bn = n -> zero -> succ -> plus -> times -> n (h -> t -> h (succ zero) zero `plus succ (succ zero) `times F->bn t zero succ plus times) zero;
@@ -109,10 +123,8 @@ F10 = F++ F9;
 
 [PARSERS]
 [px returns maybe x; px! returns x]
-pc! = s -> car s id F0;
-[TODO pF]
-_pF! = s -> s (c -> r -> (c `F- c`0) `F+ _pF! r `F* F10) F0;
-pF! = s -> _pF! `$ rev s; [TODO how to deal with helper functions?]
-pn! = s -> F->n `$ pF! s;
+pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
+_pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
+pF  = s -> null? s none (_pF `$ rev s);
 
-main = F->bn `$ F`1234567 `F+ n->F n`1234;
+main = F->bn `$ F`12345;

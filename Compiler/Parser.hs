@@ -72,7 +72,7 @@ stringParseParser = do
   p <- varParser
   char '`'
   a <- varParser
-  pure $ Var0 ("p" <> p <> "!") `App0` stringLit a
+  pure $ ((Var0 ("p" <> p) `App0` stringLit a) `App0` idLit) `App0` idLit
 
 lineParser :: Parser Line0
 lineParser = do

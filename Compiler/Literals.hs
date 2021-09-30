@@ -3,6 +3,9 @@ module Compiler.Literals where
 import Compiler.CodeConversion
 import Data.Char
 
+idLit :: Expr0
+idLit = Lam0 "x" $ Var0 "x"
+
 boolLit :: Bool -> Expr0
 boolLit b = Lam0 "x" $ Lam0 "y" $ Var0 $ if b then "x" else "y"
 
