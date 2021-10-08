@@ -6,6 +6,7 @@ import Data.Either
 import System.Process
 
 main = do
+  imports     <- readFile "Additions/Imports"
   typePostfix <- readFile "Additions/TypePostfix"
   evalPostfix <- readFile "Additions/EvalPostfix"
   mainFn      <- readFile "Additions/MainFn"
@@ -13,7 +14,7 @@ main = do
   text <- readFile "main.utlc"
   let parsed = parse codeFileParser "main.utlc" text
   let frParsed = fromRight (Code0 []) parsed
-  let converted = convCode2Hs typePostfix evalPostfix mainFn $ conv12Code $ conv01Code frParsed
+  let converted = imports <> (convCode2Hs typePostfix evalPostfix mainFn $ conv12Code $ conv01Code frParsed) -- TODO jank
   if (isRight parsed) then do
     writeFile "otp.hs" converted
     callCommand "ghc -no-keep-hi-files -no-keep-o-files otp.hs"

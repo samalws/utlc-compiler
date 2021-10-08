@@ -1,1 +1,2 @@
-main = putStr "ANSWER: " >> (print $ dePI $ veval (veval (veval (veval Cmain_0 (PI 0)) PSucc_0) PAdd_0) PMul_0)
+-- TODO thats a lot of vevals
+main = putStr "ANSWER: " >> (putStrLn $ map chr $ fmap fromIntegral $ dePL $ veval (veval (veval (veval (veval (veval Cmain_0 (PI 0)) PSucc_0) PAdd_0) PMul_0) (PL [])) PCons_0)
