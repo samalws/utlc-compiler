@@ -89,6 +89,9 @@ n->F = n -> n F++ F0;
 F--  = n -> n (h -> r -> h (null? r null (false `: r)) (true `: F-- r)) null;                          [O(log n)]
 F+   = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) F++ id `$ tn `F+ tm)) n) m; [O(log (max m n))]
 F*   = n -> m -> n (hn -> tn -> hn m F0   `F+   tn  `F*  false `: m) F0;                               [O(log n * log m)]
+F/%  = n -> m -> (n `F< m) (F0 `, n) `$ ((n `F- m) `F/% m) (div -> mod -> F++ div `, mod);             [at least O(m/n), TODO do this better]
+F/   = n -> m -> fst `$ n `F/% m;
+F%   = n -> m -> snd `$ n `F/% m;
 F=   = l= b=;
 F!=  = ! `.2 F=;
 F<=  = n -> m -> F0? `$ n `F- m;
@@ -96,14 +99,17 @@ F>=  = n -> m -> m `F<= n;
 F<   = ! `.2 F>=;
 F>   = ! `.2 F<=;
 Ffactorial = n -> F0? n F1 `$  n `F* Ffactorial `$ F-- n;
+[convert fast nat to string]
+_F->s = n -> F0? n null `$ (n `F/% F10) (div -> mod -> _F->s div `l+ ((c`0 `F+ mod) `: null)); [TODO use rev instead of l+, because rev will be O(n)]
+F->s  = n -> F0? n "0" (_F->s n);
 
 [TODO division, modulo]
 
 [SUBTRACTION OF FAST NATS]
-00F- = tn -> tm -> (tn `_F- tm) (x -> some `$ false `: x) none;
+00F- = tn -> tm -> (tn `_F- tm) (x -> some `$ F0? x F0 (false `: x)) none;
 01F- = tn -> tm -> F-- (false `: tn) `_F- F-- (true `: tm);
 10F- = tn -> tm -> (tn `_F- tm) (x -> some `$ true `: x) none;
-11F- = tn -> tm -> (tn `_F- tm) (x -> some `$ false `: x) none;
+11F- = tn -> tm -> (tn `_F- tm) (x -> some `$ F0? x F0 (false `: x)) none;
 __F- = hn -> tn -> hm -> tm -> (hn (hm 11F- 10F-) (hm 01F- 00F-)) tn tm;
 _F-  = n -> m -> m (hm -> tm -> n (hn -> tn -> __F- hn tn hm tm) none) (some n);
 F-   = n -> m -> (n `_F- m) id F0;
@@ -131,4 +137,4 @@ pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
 _pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
 pF  = s -> null? s none (_pF `$ rev s);
 
-main = s->bs `$ "hello world";
+main = s->bs `$ "number is " `l+ F->s F`12345;
