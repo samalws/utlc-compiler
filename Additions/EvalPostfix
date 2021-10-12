@@ -5,12 +5,16 @@ veval (PAdd_1 (PI_0 x)) (PI_0 y) = PI_0 (x + y)
 veval PMul_0 x = PMul_1 x
 veval (PMul_1 (PI_0 x)) (PI_0 y) = PI_0 (x*y)
 veval PCons_0 x = PCons_1 x
-veval (PCons_1 (PI_0 x)) (PL y) = PL (x:y)
+veval (PCons_1 (PI_0 x)) (PL_0 y) = PL_0 (x:y)
 
 veval (PI_0 n) z = PI_1 n z
 veval (PI_1 n z) s = PI_2 n z s
 veval (PI_2 n z s) a = PI_3 n z s a
 veval (PI_3 n z s a) m = convNum n (z,s,a,m)
+
+veval (PL_0 l) e = PL_1 l e
+veval (PL_1 [] e) _ = e
+veval (PL_1 (x:y) e) c = c $$ (PI_0 x) $$ veval (PL_1 y e) c
 
 convNum 0 t@(z,s,a,m) = z
 convNum 1 t@(z,s,a,m) = s $$ z
@@ -18,4 +22,4 @@ convNum 2 t@(z,s,a,m) = s $$ (s $$ z)
 convNum n t@(z,s,a,m) = a $$ (convNum (n `mod` 2) t) $$ (m $$ convNum 2 t $$ convNum (n `div` 2) t)
 
 dePI (PI_0 n) = n
-dePL (PL l) = l
+dePL (PL_0 l) = l

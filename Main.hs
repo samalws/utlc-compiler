@@ -18,7 +18,7 @@ main = do
   if (isRight parsed) then do
     writeFile "otp.hs" converted
     callCommand "ghc -no-keep-hi-files -no-keep-o-files otp.hs"
-    callCommand "time ./otp"
+    callCommand "./otp"
     callCommand "rm otp.hs"
     callCommand "rm otp"
   else print parsed

@@ -1,9 +1,13 @@
 infixl 9 $$
 a $$ b = veval a b
 main = do
-  putStrLn "Enter number: "
-  n <- readLn
-  putStr "ANSWER: "
-  let toPrint = Cmain_0 $$ PI_0 n $$ PI_0 0 $$ PSucc_0 $$ PAdd_0 $$ PMul_0 $$ PL [] $$ PCons_0
-  let toPrintConverted = chr <$> fromIntegral <$> dePL toPrint
-  putStrLn toPrintConverted
+  putStrLn "Enter string: "
+  s <- getLine
+  if s == "quit" then return () else do
+    putStr "ANSWER: "
+    let toPrint = Cmain_0 $$ convStr s $$ PI_0 0 $$ PSucc_0 $$ PAdd_0 $$ PMul_0 $$ PL_0 [] $$ PCons_0
+    let toPrintConverted = chr <$> fromIntegral <$> dePL toPrint
+    putStrLn toPrintConverted
+    main
+
+convStr s = PL_0 $ fromIntegral <$> ord <$> s

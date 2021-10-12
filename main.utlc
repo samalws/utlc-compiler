@@ -76,6 +76,7 @@ l!=    = =a -> ! `.2 l= =a;
 l+     = l1 -> l2 -> l1 (h -> t -> h `: t `l+ l2) l2; [concat lists; O(n)]
 rev    = l -> l (h -> r -> rev r `l+ single h) null;  [reverse list; O(n^2)?] [TODO make this into O(n); this is doable if you have an accumulator]
 len    = l -> l (h -> r -> F++ `$ len r) F0;
+map    = f -> l -> l (h -> r -> f h `: map f r) null;
 [TODO >, <]
 l->bl  = l -> convElem -> empty -> cons -> l (h -> t -> convElem h `cons l->bl t convElem empty cons) empty;
 
@@ -131,6 +132,7 @@ F10 = F++ F9;
 
 [BASE STRING CONVERSION]
 s->bs = s -> zero -> succ -> plus -> times -> empty -> cons -> l->bl s (n -> F->bn n zero succ plus times) empty cons;
+bs->s = s -> map bn->F `$ s null :;
 
 [PARSERS]
 [px returns maybe x; px! returns x]
@@ -138,4 +140,4 @@ pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
 _pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
 pF  = s -> null? s none (_pF `$ rev s);
 
-main = n -> s->bs `$ F->s `$ Ffactorial `$ bn->F n;
+main = s -> s->bs `$ (pF `$ bs->s s) (n -> F->s `$ Ffactorial n) "bad input";

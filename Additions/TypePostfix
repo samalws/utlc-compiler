@@ -1,1 +1,1 @@
- | PI_0 Integer | PI_1 Integer Monotype | PI_2 Integer Monotype Monotype | PI_3 Integer Monotype Monotype Monotype | PSucc_0 | PAdd_0 | PAdd_1 Monotype | PMul_0 | PMul_1 Monotype | PL [Integer] | PCons_0 | PCons_1 Monotype
+ | PI_0 Integer | PI_1 Integer Monotype | PI_2 Integer Monotype Monotype | PI_3 Integer Monotype Monotype Monotype | PSucc_0 | PAdd_0 | PAdd_1 Monotype | PMul_0 | PMul_1 Monotype | PL_0 [Integer] | PL_1 [Integer] Monotype | PCons_0 | PCons_1 Monotype
