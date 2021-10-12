@@ -116,6 +116,7 @@ F-   = n -> m -> (n `_F- m) id F0;
 
 [convert to native int; we assume the compiler provides us with zero, succ, plus, and times functions on native ints]
 F->bn = n -> zero -> succ -> plus -> times -> n (h -> t -> h (succ zero) zero `plus succ (succ zero) `times F->bn t zero succ plus times) zero;
+bn->F = n -> n F0 F++ F+ F*;
 
 F1 = F++ F0;
 F2 = F++ F1;
@@ -137,4 +138,4 @@ pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
 _pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
 pF  = s -> null? s none (_pF `$ rev s);
 
-main = s->bs `$ "number is " `l+ F->s F`12345;
+main = n -> s->bs `$ F->s `$ Ffactorial `$ bn->F n;

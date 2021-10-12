@@ -2,6 +2,7 @@ soonest todos:
 -import files
 -private fns  _=
 -small bug: x -> x -> x gets translated to f vx vx = vx, which makes haskell bug out
+-a real IO system
 
 compiler:
 -import files using {filename}

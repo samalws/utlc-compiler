@@ -1,2 +1,9 @@
--- TODO thats a lot of vevals
-main = putStr "ANSWER: " >> (putStrLn $ map chr $ fmap fromIntegral $ dePL $ veval (veval (veval (veval (veval (veval Cmain_0 (PI 0)) PSucc_0) PAdd_0) PMul_0) (PL [])) PCons_0)
+infixl 9 $$
+a $$ b = veval a b
+main = do
+  putStrLn "Enter number: "
+  n <- readLn
+  putStr "ANSWER: "
+  let toPrint = Cmain_0 $$ PI_0 n $$ PI_0 0 $$ PSucc_0 $$ PAdd_0 $$ PMul_0 $$ PL [] $$ PCons_0
+  let toPrintConverted = chr <$> fromIntegral <$> dePL toPrint
+  putStrLn toPrintConverted
