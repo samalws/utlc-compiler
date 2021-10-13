@@ -8,6 +8,8 @@ import Text.Parsec
 import Text.Parsec.String
 import Data.Maybe
 
+data UtlcFile = UtlcFile [Either (String,String) Line0]
+
 allowedSpecialChars = "~!@#$%^&*_+|:,<./?->=\\"
 
 commentParser :: Parser ()
@@ -86,13 +88,46 @@ lineParser = do
   whitespace
   pure $ Line0 name exp
 
-codeParser :: Parser Code0
-codeParser = Code0 <$> many1 lineParser
+importParser :: Parser (String,String)
+importParser = try importUnqualParser <|> importQualParser
 
-codeFileParser :: Parser Code0
-codeFileParser = do
+importUnqualParser = do
+  char '{'
+  s <- many1 $ noneOf "}|"
+  char '}'
+  pure (s,"")
+
+importQualParser = do
+  char '{'
+  s1 <- many1 $ noneOf "}|"
+  char '|'
+  s2 <- many $ noneOf "}|"
+  char '}'
+  pure (s1,s2)
+
+utlcFileParser :: Parser UtlcFile
+utlcFileParser = do
   whitespace
-  code <- codeParser
+  code <- UtlcFile <$> many1 ((Left <$> importParser) <|> (Right <$> lineParser))
   whitespace
   eof
   pure code
+
+-- TODO make it so if you import A and A imports B, then you dont get B's functions as well
+-- TODO maybe get rid of the monad transformer stuff; then you can have it spit out good error messages where it shows the file name
+-- TODO write required helepr functions: addToLineNames, instance Monoid Code0
+
+doImport :: (Monad m) => (String -> m String) -> String -> (String,String) -> ParsecT ByteString () m Code0
+doImport readFile ctx (imp,qual) = do
+  fileCode <- codeFileParser imp -- TODO use ctx to do relative filepaths
+  pure $ addToLineNames qual fileCode
+
+doImports :: (Monad m) => (String -> m String) -> String -> [(String,String)] -> ParsecT ByteString () m Code0
+doImports readFile ctx l = mconcat <$> (sequence $ doImport readFile ctx <$> l)
+
+codeFileParser :: (Monad m) => (String -> m String) -> String -> ParsecT ByteString () m Code0
+codeFileParser readFile fileName = do
+  thisFile <- lift $ readFile fileName
+  parsed <- utlcFileParser thisFile
+  imports <- doImports readFile fileName $ lefts parsed
+  pure $ (Code0 $ rights parsed) <> imports
