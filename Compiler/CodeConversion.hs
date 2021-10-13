@@ -40,6 +40,12 @@ instance Semigroup Code2 where
 instance Monoid Code2 where
   mempty = Code2 [] []
 
+qualifyLineName0 :: String -> Line0 -> Line0
+qualifyLineName0 s l = l { declName0 = s <> declName0 l }
+
+qualifyLineNames0 :: String -> Code0 -> Code0
+qualifyLineNames0 s c = Code0 $ qualifyLineName0 s <$> lines0 c
+
 getUnusedVar :: S.Set Var -> Var
 getUnusedVar s = head $ filter (not . flip S.member s) $ iterate ("x" <>) "x"
 

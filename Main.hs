@@ -4,6 +4,7 @@ import Compiler.Parser
 import Text.Parsec
 import Data.Either
 import System.Process
+import Control.Monad.Trans.Either
 
 main = do
   imports     <- readFile "Additions/Imports"
@@ -11,8 +12,7 @@ main = do
   evalPostfix <- readFile "Additions/EvalPostfix"
   mainFn      <- readFile "Additions/MainFn"
 
-  text <- readFile "main.utlc"
-  let parsed = parse codeFileParser "main.utlc" text
+  parsed <- runEitherT $ codeFileParser readFile "main.utlc"
   let frParsed = fromRight (Code0 []) parsed
   let converted = imports <> (convCode2Hs typePostfix evalPostfix mainFn $ conv12Code $ conv01Code frParsed) -- TODO jank
   if (isRight parsed) then do

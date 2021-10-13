@@ -7,8 +7,11 @@ import Compiler.Literals
 import Text.Parsec
 import Text.Parsec.String
 import Data.Maybe
+import Control.Monad.Trans.Class
+import Data.Either
+import Control.Monad.Trans.Either
 
-data UtlcFile = UtlcFile [Either (String,String) Line0]
+data UtlcFile = UtlcFile { utlcFileLines :: [Either (String,String) Line0] }
 
 allowedSpecialChars = "~!@#$%^&*_+|:,<./?->=\\"
 
@@ -114,20 +117,19 @@ utlcFileParser = do
   pure code
 
 -- TODO make it so if you import A and A imports B, then you dont get B's functions as well
--- TODO maybe get rid of the monad transformer stuff; then you can have it spit out good error messages where it shows the file name
--- TODO write required helepr functions: addToLineNames, instance Monoid Code0
+-- TODO make it so you can't qualify ">" with "-" etc
 
-doImport :: (Monad m) => (String -> m String) -> String -> (String,String) -> ParsecT ByteString () m Code0
+doImport :: (Monad m) => (String -> m String) -> String -> (String,String) -> EitherT ParseError m Code0
 doImport readFile ctx (imp,qual) = do
-  fileCode <- codeFileParser imp -- TODO use ctx to do relative filepaths
-  pure $ addToLineNames qual fileCode
+  fileCode <- codeFileParser readFile imp -- TODO use ctx to do relative filepaths
+  pure $ qualifyLineNames0 qual fileCode
 
-doImports :: (Monad m) => (String -> m String) -> String -> [(String,String)] -> ParsecT ByteString () m Code0
+doImports :: (Monad m) => (String -> m String) -> String -> [(String,String)] -> EitherT ParseError m Code0
 doImports readFile ctx l = mconcat <$> (sequence $ doImport readFile ctx <$> l)
 
-codeFileParser :: (Monad m) => (String -> m String) -> String -> ParsecT ByteString () m Code0
+codeFileParser :: (Monad m) => (String -> m String) -> String -> EitherT ParseError m Code0
 codeFileParser readFile fileName = do
-  thisFile <- lift $ readFile fileName
-  parsed <- utlcFileParser thisFile
+  thisFileText <- lift $ readFile fileName
+  parsed <- hoistEither $ utlcFileLines <$> parse utlcFileParser fileName thisFileText
   imports <- doImports readFile fileName $ lefts parsed
   pure $ (Code0 $ rights parsed) <> imports
