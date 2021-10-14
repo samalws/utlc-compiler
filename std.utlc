@@ -16,8 +16,8 @@ false = ignore;
 !|    = ! `.2 |;
 xor   = a -> b -> (a `| b) `& (a `!& b);
 xnor  = ! `.2 xor;
-b=    = xnor;
-b!=   = xor;
+=b   = xnor;
+!=b  = xor;
 
 [TUPLES]
 ,   = x -> y -> f -> f x y;
@@ -25,34 +25,34 @@ fst = t -> t const;
 snd = t -> t ignore;
 mapFst = f -> t -> f (fst t) `, snd t;
 mapSnd = f -> t -> fst t `, f (snd t);
-,=     = =a -> =b -> t1 -> t2 -> (fst t1 `=a fst t2) `& (snd t1 `=b snd t2);
-,!=    = =a -> =b -> ! `.2 ,= =a =b;
+=,     = =a -> =b -> t1 -> t2 -> (fst t1 `=a fst t2) `& (snd t1 `=b snd t2);
+!=,    = =a -> =b -> ! `.2 =, =a =b;
 
 [CHURCH ENCODED NATURAL NUMBERS]
-0  = f -> x -> x;
-1  = ++ 0;
-++ = n -> f -> x -> f `n f x;
--- = n -> fst `$ (t -> snd t `, ++ (snd t)) `n (0 `, 0);
-+  = n -> m -> ++  `n m;
--  = n -> m -> --  `m n;
-*  = n -> m -> + m `n 0;
-/% = n -> m -> (0? (n `- m)) (0 `, n) (mapFst ++ `$ (n `- m) `/% m);
-/  = n -> m -> fst `$ n `/% m;
-%  = n -> m -> snd `$ n `/% m;
-^  = n -> m -> * m `n 1;
-0? = n -> const false `n true;
-factorial = n -> (0? n) 1 (n `* factorial `$ -- n);
-2 = ++ 1;
-3 = ++ 2;
-4 = ++ 3;
-5 = ++ 4;
-6 = ++ 5;
-7 = ++ 6;
-8 = ++ 7;
-9 = ++ 8;
-10 = ++ 9;
-n= = a -> b -> (0? `$ a `- b) `& (0? `$ b `- a);
-n!= = ! `.2 n=;
+0N  = f -> x -> x;
+1N  = ++N 0;
+++N = n -> f -> x -> f `n f x;
+--N = n -> fst `$ (t -> snd t `, ++ (snd t)) `n (0N `, 0N);
++N  = n -> m -> ++N `n m;
+-N  = n -> m -> --N `m n;
+*N  = n -> m -> +N m `n 0N;
+/%N = n -> m -> (0?N (n `- m)) (0 `, n) (mapFst ++ `$ (n `- m) `/%N m);
+/N  = n -> m -> fst `$ n `/%N m;
+%N  = n -> m -> snd `$ n `/%N m;
+^N  = n -> m -> *N m `n 1N;
+0?N = n -> const false `n true;
+factorialN = n -> (0?N n) 1N (n `*N factorialN `$ --N n);
+2N = ++N 1N;
+3N = ++N 2N;
+4N = ++N 3N;
+5N = ++N 4N;
+6N = ++N 5N;
+7N = ++N 6N;
+8N = ++N 7N;
+9N = ++N 8N;
+10N = ++N 9N;
+=N  = a -> b -> (0?N `$ a `-N b) `& (0?N `$ b `-N a);
+!=N = ! `.2 =N;
 [TODO n>, n<, ...]
 
 [MAYBE]
@@ -60,8 +60,8 @@ none  = f -> x -> x;
 some  = a -> f -> x -> f a;
 none? = m -> m (const false) true;
 some? = m -> m (const true) false;
-m=    = =a -> m1 -> m2 -> m1 (a1 -> m2 (a2 -> a1 `=a a2) false) (none? m2);
-m!=   = =a -> ! `.2 m= =a;
+=m    = =a -> m1 -> m2 -> m1 (a1 -> m2 (a2 -> a1 `=a a2) false) (none? m2);
+!=m   = =a -> ! `.2 =m =a;
 
 [SCOTT ENCODED LISTS]
 null   = f -> x -> x;
@@ -71,71 +71,69 @@ car    = l -> l (some `.2 const) none;
 cdr    = l -> l ignore none;
 @      = l -> n -> 0? n (car l) (cdr l `@ -- n);
 single = h -> h `: null;
-l=     = =a -> l1 -> l2 -> l1 (h1 -> t1 -> l2 (h2 -> t2 -> (h1 `=a h2) `& (l= =a t1 t2)) false) (null? l2);
-l!=    = =a -> ! `.2 l= =a;
-l+     = l1 -> l2 -> l1 (h -> t -> h `: t `l+ l2) l2; [concat lists; O(n)]
-rev    = l -> l (h -> r -> rev r `l+ single h) null;  [reverse list; O(n^2)?] [TODO make this into O(n); this is doable if you have an accumulator]
-len    = l -> l (h -> r -> F++ `$ len r) F0;
+=l     = =a -> l1 -> l2 -> l1 (h1 -> t1 -> l2 (h2 -> t2 -> (h1 `=a h2) `& (=l =a t1 t2)) false) (null? l2);
+!=l    = =a -> ! `.2 =l =a;
++l     = l1 -> l2 -> l1 (h -> t -> h `: t `+l l2) l2; [concat lists; O(n)]
+rev    = l -> l (h -> r -> rev r `+l single h) null;  [reverse list; O(n^2)?] [TODO make this into O(n); this is doable if you have an accumulator]
+len    = l -> l (h -> r -> ++ `$ len r) 0;
 map    = f -> l -> l (h -> r -> f h `: map f r) null;
 [TODO >, <]
 l->bl  = l -> convElem -> empty -> cons -> l (h -> t -> convElem h `cons l->bl t convElem empty cons) empty;
 
-[FAST NATS - LIST OF BOOLEANS - O(log n)]
+[BOOLEAN LIST NATURAL NUMBERS]
+[order: LSD to MSD]
 [precondition for a lot of this: there is a true at the end of the list]
-F0   = null;
-F++  = n -> n (h -> r -> h (false `: F++ r) (true `: r)) (single true);                                [O(log n)]
-F0?  = null?;
-F->n = n -> n (h -> r -> (h 1 0) `+ (2 `* F->n r)) 0;  [convert to church encoded zero/succ ints]
-n->F = n -> n F++ F0;
-F--  = n -> n (h -> r -> h (null? r null (false `: r)) (true `: F-- r)) null;                          [O(log n)]
-F+   = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) F++ id `$ tn `F+ tm)) n) m; [O(log (max m n))]
-F*   = n -> m -> n (hn -> tn -> hn m F0   `F+   tn  `F*  false `: m) F0;                               [O(log n * log m)]
-F/%  = n -> m -> (n `F< m) (F0 `, n) `$ ((n `F- m) `F/% m) (div -> mod -> F++ div `, mod);             [at least O(m/n), TODO do this better]
-F/   = n -> m -> fst `$ n `F/% m;
-F%   = n -> m -> snd `$ n `F/% m;
-F=   = l= b=;
-F!=  = ! `.2 F=;
-F<=  = n -> m -> F0? `$ n `F- m;
-F>=  = n -> m -> m `F<= n;
-F<   = ! `.2 F>=;
-F>   = ! `.2 F<=;
-Ffactorial = n -> F0? n F1 `$  n `F* Ffactorial `$ F-- n;
+0    = null;
+++   = n -> n (h -> r -> h (false `: ++ r) (true `: r)) (single true);                                [O(log n)]
+0?   = null?;
+n->N = n -> n (h -> r -> (h 1N 0N) `+N (2N `*N n->N r)) 0N;  [convert to church encoded zero/succ ints]
+N->n = n -> n ++ 0;
+--   = n -> n (h -> r -> h (null? r null (false `: r)) (true `: -- r)) null;                         [O(log n)]
++    = n -> m -> n (hn -> tn -> m (hm -> tm -> (hn `xor hm) `: ((hn `& hm) ++ id `$ tn `+ tm)) n) m; [O(log (max m n))]
+*    = n -> m -> n (hn -> tn -> hn m 0   `+   tn  `*  false `: m) 0;                                 [O(log n * log m)]
+/%   = n -> m -> (n `<n m) (0 `, n) `$ ((n `- m) `/% m) (div -> mod -> ++ div `, mod);                [at least O(m/n), TODO do this better]
+/    = n -> m -> fst `$ n `/% m;
+%    = n -> m -> snd `$ n `/% m;
+=n   = =l =b;
+!=n  = ! `.2 =n;
+<=n  = n -> m -> 0? `$ n `- m;
+>=n  = n -> m -> m `<=n n;
+<n   = ! `.2 >=n;
+>n   = ! `.2 <=n;
+factorial = n -> 0? n 1 `$  n `* factorial `$ -- n;
 [convert fast nat to string]
-_F->s = n -> F0? n null `$ (n `F/% F10) (div -> mod -> _F->s div `l+ ((c`0 `F+ mod) `: null)); [TODO use rev instead of l+, because rev will be O(n)]
-F->s  = n -> F0? n "0" (_F->s n);
+_n->s = n -> 0? n null `$ (n `/% 10) (div -> mod -> _n->s div `+l ((c`0 `+ mod) `: null)); [TODO use rev instead of +l, because rev will be O(n)]
+n->s  = n -> 0? n "0" (_n->s n);
 
-[TODO division, modulo]
-
-[SUBTRACTION OF FAST NATS]
-00F- = tn -> tm -> (tn `_F- tm) (x -> some `$ F0? x F0 (false `: x)) none;
-01F- = tn -> tm -> F-- (false `: tn) `_F- F-- (true `: tm);
-10F- = tn -> tm -> (tn `_F- tm) (x -> some `$ true `: x) none;
-11F- = tn -> tm -> (tn `_F- tm) (x -> some `$ F0? x F0 (false `: x)) none;
-__F- = hn -> tn -> hm -> tm -> (hn (hm 11F- 10F-) (hm 01F- 00F-)) tn tm;
-_F-  = n -> m -> m (hm -> tm -> n (hn -> tn -> __F- hn tn hm tm) none) (some n);
-F-   = n -> m -> (n `_F- m) id F0;
+[SUBTRACTION OF BOOLEAN LIST NATS]
+00- = tn -> tm -> (tn `_- tm) (x -> some `$ 0? x 0 (false `: x)) none;
+01- = tn -> tm -> -- (false `: tn) `_- -- (true `: tm);
+10- = tn -> tm -> (tn `_- tm) (x -> some `$ true `: x) none;
+11- = tn -> tm -> (tn `_- tm) (x -> some `$ 0? x 0 (false `: x)) none;
+__- = hn -> tn -> hm -> tm -> (hn (hm 11- 10-) (hm 01- 00-)) tn tm;
+_-  = n -> m -> m (hm -> tm -> n (hn -> tn -> __- hn tn hm tm) none) (some n);
+-   = n -> m -> (n `_- m) id 0;
 
 [convert to native int; we assume the compiler provides us with zero, succ, plus, and times functions on native ints]
-F->bn = n -> zero -> succ -> plus -> times -> n (h -> t -> h (succ zero) zero `plus succ (succ zero) `times F->bn t zero succ plus times) zero;
-bn->F = n -> n F0 F++ F+ F*;
+n->bn = n -> zero -> succ -> plus -> times -> n (h -> t -> h (succ zero) zero `plus succ (succ zero) `times n->bn t zero succ plus times) zero;
+bn->n = n -> n 0 ++ + *;
 
-F1 = F++ F0;
-F2 = F++ F1;
-F3 = F++ F2;
-F4 = F++ F3;
-F5 = F++ F4;
-F6 = F++ F5;
-F7 = F++ F6;
-F8 = F++ F7;
-F9 = F++ F8;
-F10 = F++ F9;
+1 = ++ 0;
+2 = ++ 1;
+3 = ++ 2;
+4 = ++ 3;
+5 = ++ 4;
+6 = ++ 5;
+7 = ++ 6;
+8 = ++ 7;
+9 = ++ 8;
+10 = ++ 9;
 
 [BASE STRING CONVERSION]
-s->bs = s -> zero -> succ -> plus -> times -> empty -> cons -> l->bl s (n -> F->bn n zero succ plus times) empty cons;
-bs->s = s -> map bn->F `$ s null :;
+s->bs = s -> zero -> succ -> plus -> times -> empty -> cons -> l->bl s (n -> n->bn n zero succ plus times) empty cons;
+bs->s = s -> map bn->n `$ s null :;
 
 [PARSERS]
-[px returns maybe x; px! returns x]
-pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
-_pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
-pF  = s -> null? s none (_pF `$ rev s);
+pc  = s -> null? s none `$ !=n 1 (len s) none `$ car s;
+_pn = s -> s (c -> r -> ((c `<n c`0) `| (c `>n c`9)) none `$ _pn r (n -> some `$ (c `- c`0) `+ n `* 10) none) (some 0);
+pn  = s -> null? s none (_pn `$ rev s);

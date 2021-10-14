@@ -1,4 +1,4 @@
 {std.utlc}
 
-main = mainWithInp F10 "startup";
-mainWithInp = n -> s -> s->bs (F0? n "q" `$ c`c `: s) `, (mainWithInp (F-- n) `. bs->s);
+main = mainWithInp n`10 "startup";
+mainWithInp = n -> s -> s->bs (0? n "q" `$ c`c `: s) `, (mainWithInp (-- n) `. bs->s);
