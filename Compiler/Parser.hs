@@ -98,6 +98,7 @@ importUnqualParser = do
   char '{'
   s <- many1 $ noneOf "}|"
   char '}'
+  whitespace
   pure (s,"")
 
 importQualParser = do
@@ -106,6 +107,7 @@ importQualParser = do
   char '|'
   s2 <- many $ noneOf "}|"
   char '}'
+  whitespace
   pure (s1,s2)
 
 utlcFileParser :: Parser UtlcFile
@@ -116,12 +118,9 @@ utlcFileParser = do
   eof
   pure code
 
--- TODO make it so if you import A and A imports B, then you dont get B's functions as well
--- TODO make it so you can't qualify ">" with "-" etc
-
 doImport :: (Monad m) => (String -> m String) -> String -> (String,String) -> EitherT ParseError m Code0
 doImport readFile ctx (imp,qual) = do
-  fileCode <- codeFileParser readFile imp -- TODO use ctx to do relative filepaths
+  fileCode <- codeFileParser readFile imp -- todo use ctx to do relative filepaths
   pure $ qualifyLineNames0 qual fileCode
 
 doImports :: (Monad m) => (String -> m String) -> String -> [(String,String)] -> EitherT ParseError m Code0

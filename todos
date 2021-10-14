@@ -1,7 +1,13 @@
 soonest todos:
--import files
--private fns  _=
 -small bug: x -> x -> x gets translated to f vx vx = vx, which makes haskell bug out
+-fix import
+
+import fixes:
+-if its qualified then all its variables get messed up
+-if you import A and A imports B then you get everything in B
+-if you qualify ">" with "-" you get a function called "->"
+-relative paths
+-private functions lol
 
 compiler:
 -import files using {filename}
