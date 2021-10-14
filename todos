@@ -10,9 +10,7 @@ import fixes:
 -private functions lol
 
 compiler:
--import files using {filename}
 -more compilation stuff like compiling to an imperative lang instead of haskell
--better IO system (be able to take input not just give output; output strings instead of nums; eventually do actual real IO instead of string IO lmao)
 -something like _= for private functions
 -special P``string goes here`` syntax for parsing string with spaces allowed in it using parser pP (& checking for errors)
 --make this be the only way to input strings, getting rid of/replacing the double quote syntax?
@@ -21,7 +19,7 @@ compiler:
 
 utlc code:
 -more parsers: printf type thing (variadic); chars with cool backslash stuff; strings with cool backslash stuff; numbers with diff base systems; stacks of car and cdr?; *arbitrary ADT types*
--rename ""Fast nats"" because theyre just standard nats at this point (and generally come up with a good naming convention)
+-generally make a better naming convention
 -arbitrary m by n function composition
 -ADTs, auto deriving folds (convert to church encoding); fmap; equality; parsing; printing; maybe ord; maybe monoid; etc
 -n-tuples (ie fixed size arrays) with associated operations
