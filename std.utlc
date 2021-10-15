@@ -77,6 +77,8 @@ single = h -> h `: null;
 rev    = l -> l (h -> r -> rev r `+l single h) null;  [reverse list; O(n^2)?] [TODO make this into O(n); this is doable if you have an accumulator]
 len    = l -> l (h -> r -> ++ `$ len r) 0;
 map    = f -> l -> l (h -> r -> f h `: map f r) null;
+foldr  = f -> x -> l -> l (h -> t -> f h (foldr f x t)) x;
+last   = foldr (h -> e -> e id (some h)) none;
 [TODO >, <]
 l->bl  = l -> convElem -> empty -> cons -> l (h -> t -> convElem h `cons l->bl t convElem empty cons) empty;
 
@@ -137,3 +139,12 @@ bs->s = s -> map bn->n `$ s null :;
 pc  = s -> null? s none `$ !=n 1 (len s) none `$ car s;
 _pn = s -> s (c -> r -> ((c `<n c`0) `| (c `>n c`9)) none `$ _pn r (n -> some `$ (c `- c`0) `+ n `* 10) none) (some 0);
 pn  = s -> null? s none (_pn `$ rev s);
+
+[VARIADIC FUNCTIONS]
+fireList = f -> l -> l (h -> t -> fireList (f h) t) f;
+nComp = n -> 0? n id (f -> g -> x -> nComp (-- n) f (g x));
+nGather = n -> 0? n null (x -> nComp (-- n) (: x) (nGather (-- n)));
+nVariadic = f -> n -> nComp n f (nGather n);
+nRev = nVariadic (l -> foldr id f (rev l));
+nConst = nVariadic (l -> last l id id) `. ++;
+nIgnore = nVariadic (l -> car l id id) `. ++;
