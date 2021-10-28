@@ -149,3 +149,8 @@ conv12Line = fixLine . conv12LineHelper where
 conv12Code :: Code1 -> Code2
 conv12Code = mconcat . fmap (f . conv12Line) . lines1 . removeTextCode1 evalFnName where
   f (a, b) = Code2 [b] [a]
+
+expr2List :: Expr2 -> [Expr2]
+expr2List = reverse . helper where
+  helper (App2 a b) = b:(helper a)
+  helper a = pure a
