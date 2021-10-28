@@ -145,6 +145,6 @@ fireList = f -> l -> l (h -> t -> fireList (f h) t) f;
 nComp = n -> 0? n id (f -> g -> x -> nComp (-- n) f (g x));
 nGather = n -> 0? n null (x -> nComp (-- n) (: x) (nGather (-- n)));
 nVariadic = f -> n -> nComp n f (nGather n);
-nRev = nVariadic (l -> foldr id f (rev l));
+nRev = f -> nVariadic (l -> foldr id f (rev l));
 nConst = nVariadic (l -> last l id id) `. ++;
 nIgnore = nVariadic (l -> car l id id) `. ++;
