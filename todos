@@ -2,14 +2,13 @@ soonest todos:
 -small bug: x -> x -> x gets translated to f vx vx = vx, which makes haskell (and rust) bug out
 -fix import
 
-imperative todos:
--generate unique variables
 rust todos:
 -make custom thunk class
 
 optimizations:
 -do eval calls if it just turns Cx_n into Cx_n+1
 -remove unused function arguments (since functions are only called in eval)
+-merge functions that're literally identical
 -track what types a function takes and returns, and make smaller versions of Monotype depending on this
 -see paper notes for more of these
 
