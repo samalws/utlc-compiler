@@ -3,11 +3,12 @@ module Compiler.GenImp where
 import Compiler.CodeConversion
 import Control.Monad.State
 
--- this is all super tentative
+-- todo make vars actually be unique
+-- todo do eval
 
 data ImpLine = ImpFnLine Var [Var] | ImpCtorLine Var [Var]
-data ImpFn = ImpFn Var [ImpLine]
-data ImpCode = ImpCode [ImpFn]
+data ImpFn = ImpFn { impRetVal :: Var, impLines :: [ImpLine] }
+data ImpCode = ImpCode { impFns :: [ImpFn], impTypes :: [(Var, Int)] }
 
 makeUniqueVarImp :: State [ImpLine] Var
 makeUniqueVarImp = pure "todo"
@@ -32,4 +33,4 @@ convLine2Imp :: Line2 -> ImpFn
 convLine2Imp l = uncurry ImpFn $ runState (convExpr2Imp $ declExpr2 l) []
 
 convCode2Imp :: Code2 -> ImpCode
-convCode2Imp c = ImpCode $ convLine2Imp <$> lines2 c
+convCode2Imp c = ImpCode (convLine2Imp <$> lines2 c) (types2 c)
