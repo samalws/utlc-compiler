@@ -47,7 +47,7 @@ qualifyLineNames0 :: String -> Code0 -> Code0
 qualifyLineNames0 s c = Code0 $ qualifyLineName0 s <$> lines0 c
 
 getUnusedVar :: S.Set Var -> Var
-getUnusedVar s = head $ filter (not . flip S.member s) $ iterate ("x" <>) "x"
+getUnusedVar s = head $ filter (not . flip S.member s) $ map ("nv" <>) $ map show $ [0..]
 
 getUnusedVar1 :: S.Set Var -> State Code1 Var
 getUnusedVar1 set = do
