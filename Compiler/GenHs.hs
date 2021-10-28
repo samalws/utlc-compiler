@@ -36,7 +36,7 @@ makeHsTypeDecl ctors = "data Monotype = " <> types where
 
 makeHsEval :: [(Var, Int)] -> String
 makeHsEval ctors = startText <> (intercalate "\n" $ makeEvals <$> ctors) where
-  startText = convVarHs "eval" <> " :: Monotype -> Monotype -> Monotype\n"
+  startText = convVarHs evalFnName <> " :: Monotype -> Monotype -> Monotype\n"
   makeEvals (v, n) = intercalate "\n" (makeLastEval v (n-1) : [makeMiddleEval v m | m <- [0..n-2]])
   makeMiddleEval v n = makeEvalGeneric v n $ convCtorHs (n+1) v
   makeLastEval v n = makeEvalGeneric v n $ convVarHs v

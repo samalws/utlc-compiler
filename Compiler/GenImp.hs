@@ -3,9 +3,6 @@ module Compiler.GenImp where
 import Compiler.CodeConversion
 import Control.Monad.State
 
--- todo make vars actually be unique
--- todo do eval
-
 data ImpLine = ImpFnLine Var Var [Var] | ImpCtorLine Var Var Int [Var]
 data ImpFn = ImpFn { impFnName :: Var, impArgs :: [Var], impRetVal :: Var, impLines :: [ImpLine] }
 data ImpCode = ImpCode { impFns :: [ImpFn], impTypes :: [(Var, Int)] }

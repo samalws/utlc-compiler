@@ -1,6 +1,17 @@
 soonest todos:
--small bug: x -> x -> x gets translated to f vx vx = vx, which makes haskell bug out
+-small bug: x -> x -> x gets translated to f vx vx = vx, which makes haskell (and rust) bug out
 -fix import
+
+imperative todos:
+-generate unique variables
+rust todos:
+-make custom thunk class
+
+optimizations:
+-do eval calls if it just turns Cx_n into Cx_n+1
+-remove unused function arguments (since functions are only called in eval)
+-track what types a function takes and returns, and make smaller versions of Monotype depending on this
+-see paper notes for more of these
 
 import fixes:
 -if its qualified then all its variables get messed up
@@ -16,6 +27,7 @@ compiler:
 --make this be the only way to input strings, getting rid of/replacing the double quote syntax?
 -parse using stuff in parens by doing (bla bla)`parsedString
 -infix using stuff in parens by doing x `(bla bla) y
+-make fresh variable generation not be O(num vars you want to generate^2) lol
 
 utlc code:
 -more parsers: printf type thing (variadic); chars with cool backslash stuff; strings with cool backslash stuff; numbers with diff base systems; stacks of car and cdr?; *arbitrary ADT types*

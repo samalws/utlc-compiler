@@ -13,5 +13,5 @@ main = do
   let frParsed = fromRight (Code0 []) parsed
   let converted = impCodeRs $ convCode2Imp $ conv12Code $ conv01Code frParsed
   if (isRight parsed) then do
-    writeFile "otp.rs" $ converted <> "\nfn main(){}\nfn veval(a: Box<Monotype>, b: Box<Monotype>) -> Box<Monotype> {\n  return Box::new(Monotype::Cid_0)\n}"
+    writeFile "otp.rs" $ converted <> "\nfn main(){}\n"
   else print parsed
