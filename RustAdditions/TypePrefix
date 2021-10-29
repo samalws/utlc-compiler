@@ -1,0 +1,8 @@
+  PI_0(BigInt), PI_1(BigInt, Rc<Monotype>), PI_2(BigInt, Rc<Monotype>, Rc<Monotype>), PI_3(BigInt, Rc<Monotype>, Rc<Monotype>, Rc<Monotype>),
+  PSucc_0,
+  PAdd_0, PAdd_1(Rc<Monotype>),
+  PMul_0, PMul_1(Rc<Monotype>),
+  PNull_0, PNull_1(Rc<Monotype>),
+  PCons_0, PCons_1(BigInt), PCons_2(BigInt, Rc<Monotype>), PCons_3(BigInt, Rc<Monotype>, Rc<Monotype>),
+  PT_0(Rc<Monotype>, Rc<Monotype>),
+  PComma_0, PComma_1(Rc<Monotype>),

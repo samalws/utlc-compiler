@@ -1,0 +1,18 @@
+/*
+main = _main Cmain_0
+
+_main expr = do
+  let (ioA,ioB) = dePT $ expr $$ PComma_0
+  let otp = monoToStr ioA
+  if otp == "q" then return () else do
+    putStrLn $ drop 1 otp
+    inp <- getLine
+    _main $ ioB $$ strToMono inp
+
+infixl 9 $$
+a $$ b = veval a b
+
+strToMono s = PL_0 $ fromIntegral <$> ord <$> s
+monoToStr s = chr <$> fromIntegral <$> dePL (s $$ PI_0 0 $$ PSucc_0 $$ PAdd_0 $$ PMul_0 $$ PL_0 [] $$ PCons_0)
+*/
+fn main() {}

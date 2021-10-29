@@ -29,9 +29,9 @@ impFnRs f = "fn " <> name <> "(" <> args <> ") -> Rc<Monotype> {\n" <> body <> r
   body = mconcat $ map ("  " <>) $ map (<> "\n") $ impLineRs <$> impLines f
   ret = "  " <> convVarRs (impRetVal f)
 
-makeRsEval :: [(Var, Int)] -> String
-makeRsEval ctors = startText <> (intercalate ",\n    " $ makeEvals <$> ctors) <> endText where
-  startText = "fn " <> convVarHs evalFnName <> "(a: Rc<Monotype>, y: Rc<Monotype>) -> Rc<Monotype> {\n  match &*a {\n    "
+makeRsEval :: String -> [(Var, Int)] -> String
+makeRsEval prefix ctors = startText <> prefix <> "  " <> (intercalate ",\n    " $ makeEvals <$> ctors) <> endText where
+  startText = "fn " <> convVarHs evalFnName <> "(a: Rc<Monotype>, y: Rc<Monotype>) -> Rc<Monotype> {\n  match &*a {\n"
   endText = "\n  }\n}\n"
   makeEvals (v, n) = intercalate ",\n    " (makeLastEval v (n-1) : [makeMiddleEval v m | m <- [0..n-2]])
   makeMiddleEval v n = (makeEvalGeneric v n $ "Rc::new(Monotype::" <> convCtorRs (n+1) v) <> ")"
@@ -40,12 +40,12 @@ makeRsEval ctors = startText <> (intercalate ",\n    " $ makeEvals <$> ctors) <>
   makeEvalGeneric v n fn = "Monotype::" <> convCtorHs n v <> "(" <> makeVarList n False <> ") => " <> fn <> "(" <> makeVarList n True <> ", " <> reboxedRs "y" <> ")"
   makeVarList n b = intercalate ", " $ (if b then reboxedRs else id) <$> ["x" <> show m | m <- [1..n]]
 
-makeRsTypeDecl :: [(Var, Int)] -> String
-makeRsTypeDecl ctors = "enum Monotype {\n  " <> types <> "\n}\n" where
+makeRsTypeDecl :: String -> [(Var, Int)] -> String
+makeRsTypeDecl prefix ctors = "enum Monotype {\n  " <> prefix <> types <> "\n}\n" where
   types = intercalate ",\n  " $ makeCtors <$> ctors
   makeCtors (v, n) = intercalate ", " [makeCtorN v m | m <- [0..n-1]]
   makeCtorN v 0 = convCtorRs 0 v
   makeCtorN v n = convCtorRs n v <> "(" <> intercalate ", " (replicate n "Rc<Monotype>") <> ")"
 
-impCodeRs :: ImpCode -> String
-impCodeRs c = "use std::rc::Rc;\n" <> makeRsTypeDecl (impTypes c) <> makeRsEval (impTypes c) <> intercalate "\n" (impFnRs <$> impFns c)
+impCodeRs :: String -> String -> String -> String -> ImpCode -> String
+impCodeRs imports typePrefix evalPrefix mainFn c = "use std::rc::Rc;\n" <> imports <> makeRsTypeDecl typePrefix (impTypes c) <> makeRsEval evalPrefix (impTypes c) <> intercalate "\n" (impFnRs <$> impFns c) <> "\n" <> mainFn

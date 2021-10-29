@@ -1,0 +1,38 @@
+use num::BigInt;
+fn dePI(a: Rc<Monotype>) -> BigInt {
+  match &*a {
+    Monotype::PI_0(n) => n.clone(),
+    _ => panic!("Expected int")
+  }
+}
+fn dePL(a: Rc<Monotype>) -> Vec<BigInt> {
+  let mut returnVal = Vec::new();
+  let mut scanElem = a;
+  loop {
+    match &*scanElem {
+      Monotype::PNull_0 => break,
+      Monotype::PCons_2(n, r) => { returnVal.push(n.clone()); scanElem = Rc::clone(&r) },
+      _ => panic!("Expected list")
+    };
+  };
+  returnVal
+}
+fn dePT(a: Rc<Monotype>) -> (Rc<Monotype>, Rc<Monotype>) {
+  match &*a {
+    Monotype::PT_0(x,y) => (Rc::clone(&x),Rc::clone(&y)),
+    _ => panic!("Expected tuple")
+  }
+}
+fn convNum(n: BigInt, z: Rc<Monotype>, s: Rc<Monotype>, a: Rc<Monotype>, m: Rc<Monotype>) -> Rc<Monotype> {
+  if n == BigInt::from(0) {
+    z
+  } else if n == BigInt::from(1) {
+    veval(s, z)
+  } else if n == BigInt::from(2) {
+    veval(Rc::clone(&s), veval(s, z))
+  } else {
+    veval(veval(Rc::clone(&a), convNum(n.clone() % BigInt::from(2) /* WHY?! */, Rc::clone(&z), Rc::clone(&s), Rc::clone(&a), Rc::clone(&m))), veval(veval(Rc::clone(&m), convNum(BigInt::from(2), Rc::clone(&z), Rc::clone(&s), Rc::clone(&a), Rc::clone(&m))), convNum(n.clone() / BigInt::from(2), Rc::clone(&z), Rc::clone(&s), Rc::clone(&a), Rc::clone(&m))))
+    // either rust is a really really terrible language or I have no idea how to use it right
+    // this code is completely atrocious
+  }
+}

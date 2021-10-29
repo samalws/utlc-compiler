@@ -1,0 +1,18 @@
+[package]
+name = "killme"
+version = "0.1.0"
+authors = ["Sam Alws <sam@samalws.com>"]
+edition = "2018"
+
+# why do I have to make this whole file just to get a single crate imported?!?!?!
+# why can't nix do this for me?!??!
+# why does ghc.withPackages exist but not rustc.withPackages?!?!?!
+# why does cargo spam my directory with a bunch of random folders every time I try to build anything?!??!?!
+
+[[bin]]
+name = "otp"
+path = "otp.rs"
+
+
+[dependencies]
+num = "0.1.36"

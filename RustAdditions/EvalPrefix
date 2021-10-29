@@ -1,0 +1,21 @@
+    Monotype::PSucc_0 => Rc::new(Monotype::PI_0(dePI(y)+1)),
+    Monotype::PAdd_0 => Rc::new(Monotype::PAdd_1(Rc::clone(&y))),
+    Monotype::PAdd_1(n) => Rc::new(Monotype::PI_0(dePI(Rc::clone(&n))+dePI(Rc::clone(&y)))),
+    Monotype::PMul_0 => Rc::new(Monotype::PMul_1(Rc::clone(&y))),
+    Monotype::PMul_1(n) => Rc::new(Monotype::PI_0(dePI(Rc::clone(&n))*dePI(Rc::clone(&y)))),
+    Monotype::PComma_0 => Rc::new(Monotype::PComma_1(Rc::clone(&y))),
+    Monotype::PComma_1(a) => Rc::new(Monotype::PT_0(Rc::clone(&a),Rc::clone(&y))),
+
+    Monotype::PT_0(a,b) => veval(veval(y, Rc::clone(&a)), Rc::clone(&b)),
+
+    Monotype::PNull_0 => Rc::new(Monotype::PNull_1(y)),
+    Monotype::PNull_1(e) => Rc::clone(&e),
+    Monotype::PCons_0 => Rc::new(Monotype::PCons_1(dePI(y))),
+    Monotype::PCons_1(n) => Rc::new(Monotype::PCons_2(n.clone(), Rc::clone(&y))),
+    Monotype::PCons_2(n, r) => Rc::new(Monotype::PCons_3(n.clone(), Rc::clone(&r), Rc::clone(&y))),
+    Monotype::PCons_3(n, r, e) => veval(veval(Rc::clone(&y), Rc::new(Monotype::PI_0(n.clone()))), veval(veval(Rc::clone(&r), Rc::clone(&e)), y)),
+
+    Monotype::PI_0(n) => Rc::new(Monotype::PI_1(n.clone(), Rc::clone(&y))),
+    Monotype::PI_1(n, z) => Rc::new(Monotype::PI_2(n.clone(), Rc::clone(&z), Rc::clone(&y))),
+    Monotype::PI_2(n, z, s) => Rc::new(Monotype::PI_3(n.clone(), Rc::clone(&z), Rc::clone(&s), Rc::clone(&y))),
+    Monotype::PI_3(n, z, s, a) => convNum(n.clone(), Rc::clone(&z), Rc::clone(&s), Rc::clone(&a), Rc::clone(&y)),

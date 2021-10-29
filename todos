@@ -3,7 +3,8 @@ soonest todos:
 -fix import
 
 rust todos:
--make custom thunk class
+-make custom thunk class for lazy evaluation, rn it's strict evaluation
+-add io
 
 optimizations:
 -do eval calls if it just turns Cx_n into Cx_n+1
