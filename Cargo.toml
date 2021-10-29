@@ -16,3 +16,4 @@ path = "otp.rs"
 
 [dependencies]
 num = "0.1.36"
+substring = "1.4.0"

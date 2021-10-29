@@ -1,4 +1,5 @@
 use num::BigInt;
+use substring::Substring;
 fn dePI(a: Rc<Monotype>) -> BigInt {
   match &*a {
     Monotype::PI_0(n) => n.clone(),
