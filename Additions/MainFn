@@ -1,4 +1,4 @@
-main = _main Cmain_0
+main = _main mainCtor
 
 _main expr = do
   let (ioA,ioB) = dePT $ expr $$ PComma_0

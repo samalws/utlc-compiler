@@ -27,13 +27,13 @@ data Code2 = Code2 { lines2 :: [Line2], types2 :: [(Var, Int)] }                
 -- each line means "eval (F a b) c = ..."
 data Expr3 = Eval3 Expr3 Expr3 | Var3 Var | Ctor3 Var [Expr3]                                            deriving (Show, Eq)
 data Line3 = Line3 { declCtorName3 :: Var, declCtorArgs3 :: [Var], declArg3 :: Var, declExpr3 :: Expr3 } deriving (Show, Eq)
-data Code3 = Code3 { lines3 :: [Line3], types3 :: [Var] }                                                deriving (Show, Eq)
+data Code3 = Code3 { lines3 :: [Line3], types3 :: [(Var, Int)] }                                         deriving (Show, Eq)
 
 -- A normal form
 data Ctor4 = Var4 Var | Ctor4 Var [Ctor4]                                                                deriving (Show, Eq)
 data Expr4 = Let4 Var Ctor4 Ctor4 Expr4 | CtorExpr4 Ctor4                                                deriving (Show, Eq)
 data Line4 = Line4 { declCtorName4 :: Var, declCtorArgs4 :: [Var], declArg4 :: Var, declExpr4 :: Expr4 } deriving (Show, Eq)
-data Code4 = Code4 { lines4 :: [Line4], types4 :: [Var] }                                                deriving (Show, Eq)
+data Code4 = Code4 { lines4 :: [Line4], types4 :: [(Var, Int)] }                                         deriving (Show, Eq)
 
 instance Semigroup Code0 where
   a <> b = Code0 $ lines0 a <> lines0 b
@@ -160,9 +160,9 @@ conv23Line l = lastLine:preLines where
                 declExpr3 = Ctor3 (conv23CtorName (declName2 l, m+1)) (Var3 <$> (args <> ["y"])) }
           where args = ["x" <> show a | a <- [0..(m-1)]]
 
-conv23Types :: (Var, Int) -> [Var]
-conv23Types (s, 0) = [conv23CtorName (s, 0)]
-conv23Types (s, n) = (conv23CtorName (s, n)):(conv23Types (s, n-1))
+conv23Types :: (Var, Int) -> [(Var, Int)]
+conv23Types (s, 0) = [(conv23CtorName (s, 0), 0)]
+conv23Types (s, n) = (conv23CtorName (s, n), n):(conv23Types (s, n-1))
 
 conv23Code :: Code2 -> Code3
 conv23Code c = Code3 { lines3 = concat (conv23Line <$> lines2 c), types3 = concat (conv23Types <$> types2 c) }

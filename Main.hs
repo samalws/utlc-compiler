@@ -14,7 +14,7 @@ main = do
   text <- readFile "main.utlc"
   let parsed = parse codeFileParser "main.utlc" text
   let frParsed = fromRight (Code0 []) parsed
-  let converted = imports <> (convCode2Hs typePostfix evalPostfix mainFn $ conv12Code $ conv01Code frParsed) -- TODO jank
+  let converted = imports <> (convCode4Hs typePostfix evalPostfix mainFn $ conv34Code $ conv23Code $ conv12Code $ conv01Code frParsed) -- TODO jank
   if (isRight parsed) then do
     writeFile "otp.hs" converted
     callCommand "ghc -no-keep-hi-files -no-keep-o-files otp.hs"
