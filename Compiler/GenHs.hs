@@ -16,13 +16,16 @@ convStrHs = mconcat . (convCharHs <$>)
 convVarHs :: Var -> String
 convVarHs = ("v" <>) . convStrHs
 
-convCtorHs :: Int -> Var -> String
-convCtorHs n s = "C" <> convStrHs s <> "_" <> show n
+convCtorHs :: Var -> Int -> String
+convCtorHs s n = "C" <> convStrHs s <> "_" <> show n
+
+evalFnNameHs :: Var
+evalFnNameHs = "eval"
 
 convExpr2Hs :: Expr2 -> String
-convExpr2Hs (App2 a b) = "(" <> convExpr2Hs a <> ") (" <> convExpr2Hs b <> ")"
+convExpr2Hs (Eval2 a b) = "(" <> evalFnNameHs <> " (" <> convExpr2Hs a <> ")) (" <> convExpr2Hs b <> ")"
 convExpr2Hs (Var2 s)  = convVarHs s
-convExpr2Hs (Ctor2 n s) = convCtorHs n s
+convExpr2Hs (Ctor2 s n) = convCtorHs s n
 
 convLine2Hs :: Line2 -> String
 convLine2Hs l = (convVarHs $ declName2 l) <> " " <> args <> " = " <> (convExpr2Hs $ declExpr2 l) where
@@ -32,15 +35,15 @@ makeHsTypeDecl2 :: [(Var, Int)] -> String
 makeHsTypeDecl2 ctors = "data Monotype = " <> types where
   types = intercalate " | " $ makeCtors <$> ctors
   makeCtors (v, n) = intercalate " | " [makeCtorN v m | m <- [0..n-1]]
-  makeCtorN v n = convCtorHs n v <> " " <> intercalate " " (replicate n "Monotype")
+  makeCtorN v n = convCtorHs v n <> " " <> intercalate " " (replicate n "Monotype")
 
 makeHsEval2 :: [(Var, Int)] -> String
 makeHsEval2 ctors = startText <> (intercalate "\n" $ makeEvals <$> ctors) where
-  startText = convVarHs "eval" <> " :: Monotype -> Monotype -> Monotype\n"
+  startText = evalFnNameHs <> " :: Monotype -> Monotype -> Monotype\n"
   makeEvals (v, n) = intercalate "\n" (makeLastEval v (n-1) : [makeMiddleEval v m | m <- [0..n-2]])
-  makeMiddleEval v n = makeEvalGeneric v n $ convCtorHs (n+1) v
+  makeMiddleEval v n = makeEvalGeneric v n $ convCtorHs v (n+1)
   makeLastEval v n = makeEvalGeneric v n $ convVarHs v
-  makeEvalGeneric v n fn = convVarHs evalFnName <> " (" <> convCtorHs n v <> " " <> makeVarList n <> ") y = " <> fn <> " " <> makeVarList n <> " y"
+  makeEvalGeneric v n fn = evalFnNameHs <> " (" <> convCtorHs v n <> " " <> makeVarList n <> ") y = " <> fn <> " " <> makeVarList n <> " y"
   makeVarList n = intercalate " " ["x" <> show m | m <- [1..n]]
 
 convCode2Hs :: String -> String -> String -> Code2 -> String

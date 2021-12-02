@@ -9,7 +9,7 @@ _main expr = do
     _main $ ioB $$ strToMono inp
 
 infixl 9 $$
-a $$ b = veval a b
+a $$ b = eval a b
 
 strToMono s = PL_0 $ fromIntegral <$> ord <$> s
 monoToStr s = chr <$> fromIntegral <$> dePL (s $$ PI_0 0 $$ PSucc_0 $$ PAdd_0 $$ PMul_0 $$ PL_0 [] $$ PCons_0)

@@ -4,6 +4,7 @@ module Compiler.CodeConversion where
 
 import qualified Data.Set as S
 import Control.Monad.State
+import Data.List
 
 type Var = String
 
@@ -18,12 +19,21 @@ data Line1 = Line1 { declName1 :: Var, declArgs1 :: [Var], declExpr1 :: Expr1 } 
 data Code1 = Code1 { lines1 :: [Line1] }                                        deriving (Show, Eq)
 
 -- defunctionalized code
-data Expr2 = App2 Expr2 Expr2 | Var2 Var | Ctor2 Int Var                        deriving (Show, Eq)
+data Expr2 = Eval2 Expr2 Expr2 | Var2 Var | Ctor2 Var Int                       deriving (Show, Eq)
 data Line2 = Line2 { declName2 :: Var, declArgs2 :: [Var], declExpr2 :: Expr2 } deriving (Show, Eq)
 data Code2 = Code2 { lines2 :: [Line2], types2 :: [(Var, Int)] }                deriving (Show, Eq)
 
-evalFnName :: Var
-evalFnName = "eval"
+-- code with only 1 recursive function, eval
+-- each line means "eval (F a b) c = ..."
+data Expr3 = Eval3 Expr3 Expr3 | Var3 Var | Ctor3 Var [Expr3]                                            deriving (Show, Eq)
+data Line3 = Line3 { declCtorName3 :: Var, declCtorArgs3 :: [Var], declArg3 :: Var, declExpr3 :: Expr3 } deriving (Show, Eq)
+data Code3 = Code3 { lines3 :: [Line3], types3 :: [Var] }                                                deriving (Show, Eq)
+
+-- A normal form
+data Ctor4 = Var4 Var | Ctor4 Var [Ctor4]                                                                deriving (Show, Eq)
+data Expr4 = Let4 Var Ctor4 Ctor4 Expr4 | CtorExpr4 Ctor4                                                deriving (Show, Eq)
+data Line4 = Line4 { declCtorName4 :: Var, declCtorArgs4 :: [Var], declArg4 :: Var, declExpr4 :: Expr4 } deriving (Show, Eq)
+data Code4 = Code4 { lines4 :: [Line4], types4 :: [Var] }                                                deriving (Show, Eq)
 
 instance Semigroup Code0 where
   a <> b = Code0 $ lines0 a <> lines0 b
@@ -45,9 +55,9 @@ getUnusedVar s = head $ filter (not . flip S.member s) $ iterate ("x" <>) "x"
 
 getUnusedVar1 :: S.Set Var -> State Code1 Var
 getUnusedVar1 set = do
-  state <- lines1 <$> get
+  state <- gets lines1
   let lines       = declName1 <$> state
-  let args        = join $ declArgs1 <$> state
+  let args        = declArgs1 =<< state
   let setFromCode = S.fromList $ lines <> args
   let fullSet     = set <> setFromCode
   pure $ getUnusedVar fullSet
@@ -62,8 +72,8 @@ freeVars0 (Lam0 s a) = S.delete s $ freeVars0 a
 
 freeVars2 :: Expr2 -> S.Set Var
 freeVars2 (Var2 s) = S.singleton s
-freeVars2 (App2 a b) = freeVars2 a <> freeVars2 b
-freeVars2 (Ctor2 _ s) = S.singleton s
+freeVars2 (Eval2 a b) = freeVars2 a <> freeVars2 b
+freeVars2 (Ctor2 s _) = S.singleton s
 
 conv01Expr :: S.Set Var -> Expr0 -> State Code1 ([Var], Expr1)
 conv01Expr = conv01ExprStart S.empty
@@ -104,33 +114,17 @@ conv01Code c0 = Code1 a <> b where
   l1s = sequence $ conv01Line v2 <$> l0
   (a,b) = runState l1s $ Code1 []
 
-removeTextStr :: String -> String -> String
-removeTextStr s ss
-  | (take (length s) ss) == s = s <> ss
-  | otherwise = ss
-
-removeTextExpr1 :: String -> Expr1 -> Expr1
-removeTextExpr1 s (Var1 a) = Var1 $ removeTextStr s a
-removeTextExpr1 s (App1 a b) = App1 (removeTextExpr1 s a) (removeTextExpr1 s b)
-
-removeTextLine1 :: String -> Line1 -> Line1
-removeTextLine1 s l = Line1 (removeTextStr s $ declName1 l) (removeTextStr s <$> declArgs1 l) (removeTextExpr1 s $ declExpr1 l)
-
-removeTextCode1 :: String -> Code1 -> Code1
-removeTextCode1 s = Code1 . fmap (removeTextLine1 s) . lines1
-
 conv12Expr :: S.Set Var -> Expr1 -> Expr2
 conv12Expr env (Var1 s)
   | S.member s env = Var2  s
-  | otherwise      = Ctor2 0 s
-conv12Expr env (App1 a b) = App2 (App2 (Var2 evalFnName) $ conv12Expr env a) $ conv12Expr env b
+  | otherwise      = Ctor2 s 0
+conv12Expr env (App1 a b) = Eval2 (conv12Expr env a) (conv12Expr env b)
 
 conv12Line :: Line1 -> ((Var, Int), Line2)
 conv12Line = fixLine . conv12LineHelper where
-
   fixLine :: ((Var, Int), Line2) -> ((Var, Int), Line2)
   fixLine ((v,0), l) = ((v,1), Line2 (declName2 l) [newVar] apps) where
-    apps = App2 (App2 (Var2 evalFnName) (declExpr2 l)) (Var2 newVar)
+    apps = Eval2 (declExpr2 l) (Var2 newVar)
     newVar = getUnusedVar $ freeVars2 $ declExpr2 l
   fixLine a = a 
 
@@ -141,5 +135,75 @@ conv12Line = fixLine . conv12LineHelper where
     expr = declExpr1 l
 
 conv12Code :: Code1 -> Code2
-conv12Code = mconcat . fmap (f . conv12Line) . lines1 . removeTextCode1 evalFnName where
+conv12Code = mconcat . fmap (f . conv12Line) . lines1 where
   f (a, b) = Code2 [b] [a]
+
+conv23CtorName :: (Var, Int) -> Var
+conv23CtorName (a, n) = show n <> "_" <> a
+
+conv23Expr :: Expr2 -> Expr3
+conv23Expr (Eval2 a b) = Eval3 (conv23Expr a) (conv23Expr b)
+conv23Expr (Var2 s) = Var3 s
+conv23Expr (Ctor2 s n) = Ctor3 (conv23CtorName (s, n)) []
+
+conv23Line :: Line2 -> [Line3]
+conv23Line l = lastLine:preLines where
+  n = length (declArgs2 l)
+  lastLine = Line3 { declCtorName3 = conv23CtorName (declName2 l, n-1),
+                     declCtorArgs3 = init (declArgs2 l),
+                     declArg3 = last (declArgs2 l),
+                     declExpr3 = conv23Expr (declExpr2 l) }
+  preLines = f <$> [0..n-2]
+  f m = Line3 { declCtorName3 = conv23CtorName (declName2 l, m),
+                declCtorArgs3 = args,
+                declArg3 = "y",
+                declExpr3 = Ctor3 (conv23CtorName (declName2 l, m+1)) (Var3 <$> (args <> ["y"])) }
+          where args = ["x" <> show a | a <- [0..(m-1)]]
+
+conv23Types :: (Var, Int) -> [Var]
+conv23Types (s, 0) = [conv23CtorName (s, 0)]
+conv23Types (s, n) = (conv23CtorName (s, n)):(conv23Types (s, n-1))
+
+conv23Code :: Code2 -> Code3
+conv23Code c = Code3 { lines3 = concat (conv23Line <$> lines2 c), types3 = concat (conv23Types <$> types2 c) }
+
+getUniqueVar4 :: State (S.Set Var, [(Var, Ctor4, Ctor4)]) Var
+getUniqueVar4 = do
+  (oldVars, lets) <- get
+  let thisVar = getUnusedVar oldVars
+  put (S.singleton thisVar <> oldVars, lets)
+  pure thisVar
+
+makeLet4 :: (Var, Ctor4, Ctor4) -> State (S.Set Var, [(Var, Ctor4, Ctor4)]) ()
+makeLet4 l = modify ((l:) <$>)
+
+conv34ExprLets :: Expr3 -> State (S.Set Var, [(Var, Ctor4, Ctor4)]) Ctor4
+conv34ExprLets (Eval3 a b) = do
+  va <- conv34ExprLets a
+  vb <- conv34ExprLets b
+  setEqTo <- getUniqueVar4
+  makeLet4 (setEqTo, va, vb)
+  pure $ Var4 setEqTo
+conv34ExprLets (Var3 a) = pure $ Var4 a
+conv34ExprLets (Ctor3 a bs) = do
+  vs <- sequence $ conv34ExprLets <$> bs
+  setEqTo <- getUniqueVar4
+  pure $ Ctor4 a vs
+
+mergeLets4 :: [(Var, Ctor4, Ctor4)] -> Ctor4 -> Expr4
+mergeLets4 [] ret = CtorExpr4 ret
+mergeLets4 ((a,b,c):d) ret = Let4 a b c $ mergeLets4 d ret
+
+conv34Expr :: S.Set Var -> Expr3 -> Expr4
+conv34Expr allVars a = f $ (reverse <$>) <$> runState (conv34ExprLets a) (allVars, []) where
+  f (retVal, (_, lets)) = mergeLets4 lets retVal
+
+conv34Line :: S.Set Var -> Line3 -> Line4
+conv34Line allVars l = Line4 (declCtorName3 l) (declCtorArgs3 l) (declArg3 l) (conv34Expr allVars $ declExpr3 l)
+
+conv34Code :: Code3 -> Code4
+conv34Code c = Code4 (conv34Line varSet <$> lines3 c) (types3 c) where
+  varSet = nameSet <> ctorArgsSet <> argSet
+  nameSet = S.fromList $ declCtorName3 <$> lines3 c
+  ctorArgsSet = S.fromList $ concat $ declCtorArgs3 <$> lines3 c
+  argSet = S.fromList $ declArg3 <$> lines3 c
