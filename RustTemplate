@@ -1,0 +1,77 @@
+use std::sync::{Arc, Mutex};
+// [[EXTRA IMPORTS]]
+
+// do I need the derives?
+#[derive(Copy, Clone, Debug)]
+enum Monotype<T> {
+// [[TYPE]]
+}
+
+type B<T> = Arc<Mutex<T>>;
+
+// do I need the derives?
+#[derive(Clone, Debug)]
+enum Thunk {
+  Ctor(Monotype<B<Thunk>>),
+  Eval(B<Thunk>, B<Thunk>),
+  Thunk(B<Thunk>),
+}
+
+fn new_ctor(a: Monotype<B<Thunk>>) -> B<Thunk> {
+  Arc::new(Mutex::new(Thunk::Ctor(a)))
+}
+
+fn new_eval(a: &B<Thunk>, b: &B<Thunk>) -> B<Thunk> {
+  Arc::new(Mutex::new(Thunk::Eval(a.clone(), b.clone())))
+}
+
+fn eval(a: &Monotype<B<Thunk>>, b: B<Thunk>) -> Thunk {
+  match a {
+// [[EVAL]]
+  }
+}
+
+fn calc(v: B<Thunk>) {
+  let mut stack = Vec::new();
+  stack.push(v);
+
+  loop {
+    println!("stack len {}", stack.len());
+    match stack.pop() {
+      None => { break; }
+      Some(x) => {
+        let mut xv = x.lock().unwrap();
+        match xv.clone() {
+          Thunk::Ctor(_) => {}
+          Thunk::Thunk(a) => {
+            let av = a.lock().unwrap();
+            match &*av {
+              Thunk::Ctor(m) => {
+                *xv = Thunk::Ctor(m.clone());
+              }
+              _ => {
+                stack.push(x.clone());
+                stack.push(a.clone());
+              }
+            }
+          }
+          Thunk::Eval(a, b) => {
+            let av = a.lock().unwrap();
+            match &*av {
+              Thunk::Ctor(m) => {
+                *xv = eval(m, b);
+                stack.push(x.clone());
+              }
+              _ => {
+                stack.push(x.clone());
+                stack.push(a.clone());
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// [[MAIN]]
