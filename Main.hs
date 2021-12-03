@@ -18,8 +18,8 @@ main = do
   let converted = convCodeRs imports typePostfix evalPostfix mainFn template $ conv34Code $ conv23Code $ conv12Code $ conv01Code frParsed
   if (isRight parsed) then do
     writeFile "otp.rs" converted
-    -- callCommand "ghc -no-keep-hi-files -no-keep-o-files otp.hs"
-    -- callCommand "./otp"
-    -- callCommand "rm otp.hs"
-    -- callCommand "rm otp"
+    callCommand "rustc otp.rs"
+    callCommand "./otp"
+    callCommand "rm otp.rs"
+    callCommand "rm otp"
   else print parsed

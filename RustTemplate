@@ -21,8 +21,8 @@ fn new_ctor(a: Monotype<B<Thunk>>) -> B<Thunk> {
   Arc::new(Mutex::new(Thunk::Ctor(a)))
 }
 
-fn new_eval(a: &B<Thunk>, b: &B<Thunk>) -> B<Thunk> {
-  Arc::new(Mutex::new(Thunk::Eval(a.clone(), b.clone())))
+fn new_eval(a: B<Thunk>, b: B<Thunk>) -> B<Thunk> {
+  Arc::new(Mutex::new(Thunk::Eval(a, b)))
 }
 
 fn eval(a: &Monotype<B<Thunk>>, b: B<Thunk>) -> Thunk {

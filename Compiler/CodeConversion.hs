@@ -161,8 +161,10 @@ conv23Line l = lastLine:preLines where
           where args = ["x" <> show a | a <- [0..(m-1)]]
 
 conv23Types :: (Var, Int) -> [(Var, Int)]
-conv23Types (s, 0) = [(conv23CtorName (s, 0), 0)]
-conv23Types (s, n) = (conv23CtorName (s, n), n):(conv23Types (s, n-1))
+conv23Types = helper . (subtract 1 <$>) where
+  helper :: (Var, Int) -> [(Var, Int)]
+  helper (s, 0) = [(conv23CtorName (s, 0), 0)]
+  helper (s, n) = (conv23CtorName (s, n), n):(helper (s, n-1))
 
 conv23Code :: Code2 -> Code3
 conv23Code c = Code3 { lines3 = concat (conv23Line <$> lines2 c), types3 = concat (conv23Types <$> types2 c) }

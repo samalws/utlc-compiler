@@ -22,13 +22,13 @@ convCtorNameRs :: Var -> String
 convCtorNameRs s = "C" <> convStrRs s
 
 convCtorRs :: S.Set Var -> Ctor4 -> String
-convCtorRs vs (Var4 s)
-  | S.member s vs = convVarNameRs s <> ".clone()"
-  | otherwise = "&" <> convVarNameRs s
-convCtorRs vs (Ctor4 s as) = "&new_ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs vs <$> as) <> "))"
+convCtorRs vs (Var4 s) = convVarNameRs s <> ".clone()"
+  -- | S.member s vs = convVarNameRs s <> ".clone()"
+  -- | otherwise = "&" <> convVarNameRs s
+convCtorRs vs (Ctor4 s as) = "new_ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs vs <$> as) <> "))"
 
 convRetCtorRs :: S.Set Var -> Ctor4 -> String
-convRetCtorRs vs (Var4 s) = "&*" <> convVarNameRs s <> ".lock().unwrap()"
+convRetCtorRs vs (Var4 s) = "let x = " <> convVarNameRs s <> ".lock().unwrap().clone(); x"
 convRetCtorRs vs (Ctor4 s as) = "Thunk::Ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs vs <$> as) <> "))"
 
 convExprRs :: S.Set Var -> Expr4 -> String
