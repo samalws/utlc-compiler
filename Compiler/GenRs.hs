@@ -4,7 +4,6 @@ import Compiler.CodeConversion
 import Data.List
 import Data.List.Extra
 import Data.Char
-import qualified Data.Set as S
 
 convCharRs :: Char -> String
 convCharRs 'x' = "xx" -- escape character
@@ -21,25 +20,23 @@ convVarNameRs = ("v" <>) . convStrRs
 convCtorNameRs :: Var -> String
 convCtorNameRs s = "C" <> convStrRs s
 
-convCtorRs :: S.Set Var -> Ctor4 -> String
-convCtorRs vs (Var4 s) = convVarNameRs s <> ".clone()"
-  -- | S.member s vs = convVarNameRs s <> ".clone()"
-  -- | otherwise = "&" <> convVarNameRs s
-convCtorRs vs (Ctor4 s as) = "new_ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs vs <$> as) <> "))"
+convCtorRs :: Ctor4 -> String
+convCtorRs (Var4 s) = convVarNameRs s <> ".clone()"
+convCtorRs (Ctor4 s as) = "new_ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> "))"
 
-convRetCtorRs :: S.Set Var -> Ctor4 -> String
-convRetCtorRs vs (Var4 s) = "let x = " <> convVarNameRs s <> ".lock().unwrap().clone(); x"
-convRetCtorRs vs (Ctor4 s as) = "Thunk::Ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs vs <$> as) <> "))"
+convRetCtorRs :: Ctor4 -> String
+convRetCtorRs (Var4 s) = "let x = " <> convVarNameRs s <> ".lock().unwrap().clone(); x"
+convRetCtorRs (Ctor4 s as) = "Thunk::Ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> "))"
 
-convExprRs :: S.Set Var -> Expr4 -> String
-convExprRs vs (CtorExpr4 c) = convRetCtorRs vs c
-convExprRs vs (Let4 s a b e) = "let " <> convVarNameRs s <> " = new_eval(" <> convCtorRs vs a <> ", " <> convCtorRs vs b <> ");\n" <> convExprRs vs e
+convExprRs :: Expr4 -> String
+convExprRs (CtorExpr4 c) = convRetCtorRs c
+convExprRs (Let4 s a b e) = "let " <> convVarNameRs s <> " = new_eval(" <> convCtorRs a <> ", " <> convCtorRs b <> ");\n" <> convExprRs e
 
 fixBRs :: Var -> String
 fixBRs b = "let " <> convVarNameRs b <> " = b;"
 
 evalRs :: Line4 -> String
-evalRs l = "Monotype::" <> convCtorNameRs (declCtorName4 l) <> "(" <> intercalate ", " (convVarNameRs <$> declCtorArgs4 l) <> ") => { " <> fixBRs (declArg4 l) <> "\n" <> convExprRs (S.fromList $ declCtorArgs4 l) (declExpr4 l) <> " }"
+evalRs l = "Monotype::" <> convCtorNameRs (declCtorName4 l) <> "(" <> intercalate ", " (convVarNameRs <$> declCtorArgs4 l) <> ") => { " <> fixBRs (declArg4 l) <> "\n" <> convExprRs (declExpr4 l) <> " }"
 
 evalsRs :: Code4 -> String
 evalsRs c = unlines $ evalRs <$> lines4 c
