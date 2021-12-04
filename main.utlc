@@ -143,4 +143,6 @@ pF  = s -> null? s none (_pF `$ rev s);
 [main = mainWithInp F10 "startup";
 mainWithInp = n -> s -> s->bs (F0? n "q" `$ c`c `: s) `, (mainWithInp (F-- n) `. bs->s);]
 
-main = F->bn (Ffactorial F10);
+[main = s->bs (F->s (Ffactorial F10));]
+
+main = s->bs (F->s (Ffactorial F8));

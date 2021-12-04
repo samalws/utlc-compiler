@@ -23,12 +23,53 @@ fn pi_ctor<T>(a: u64) -> Monotype<T> {
   Monotype::PI0(BigInt::from(a))
 }
 
-fn main() {
-  let mut m: B<Thunk> = new_ctor(MAIN_CTOR);
+fn de_pt<T>(a: Monotype<T>) -> (T, T) {
+  match a {
+    Monotype::PT0(a,b) => (a, b),
+    _ => panic!("Expected tuple")
+  }
+}
+
+fn de_pt_thunk(a: B<Thunk>) -> (B<Thunk>, B<Thunk>) {
+  match &*a.lock().unwrap() {
+    Thunk::Ctor(b) => de_pt(b.clone()),
+    _ => panic!("de_pt_thunk expected ctor"),
+  }
+}
+
+fn de_pl_thunk(a: B<Thunk>) -> Vec<BigInt> {
+  let mut return_val = Vec::new();
+  let mut scan_elem = a;
+  loop {
+    simplify(scan_elem.clone());
+    match &*scan_elem.clone().lock().unwrap() {
+      Thunk::Ctor(b) => match b {
+        Monotype::PNull0 => break,
+        Monotype::PCons2(n, r) => { return_val.push(n.clone()); scan_elem = r.clone(); },
+        _ => panic!("expected list value"),
+      },
+      _ => panic!("de_pl_thunk expected ctor"),
+    };
+  };
+  return_val
+}
+
+fn mono_to_str(a: B<Thunk>) -> String {
+  let mut m = a;
   m = new_eval(m, new_ctor(pi_ctor(0)));
   m = new_eval(m, new_ctor(Monotype::PSucc0));
   m = new_eval(m, new_ctor(Monotype::PAdd0 ));
   m = new_eval(m, new_ctor(Monotype::PMul0 ));
-  simplify(m.clone());
-  println!("answer: {}", de_pi_thunk(m));
+  m = new_eval(m, new_ctor(Monotype::PNull0));
+  m = new_eval(m, new_ctor(Monotype::PCons0));
+  let as_list = de_pl_thunk(m);
+  let mut utf8_list = Vec::new();
+  for c in as_list {
+    utf8_list.push(c.to_bytes_be().1[0]);
+  }
+  String::from_utf8(utf8_list).unwrap()
+}
+
+fn main() {
+  println!("answer: {}", mono_to_str(new_ctor(MAIN_CTOR)));
 }

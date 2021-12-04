@@ -19,3 +19,13 @@ Monotype::PMul1(m) => {
   let n = try_de_pi_thunk(b)?;
   Some(Thunk::Ctor(Monotype::PI0(n*m)))
 },
+Monotype::PT0(_,_) => panic!("Cannot call a tuple value"),
+Monotype::PComma0 => Some(Thunk::Ctor(Monotype::PComma1(b))),
+Monotype::PComma1(x) => Some(Thunk::Ctor(Monotype::PT0(x.clone(),b))),
+Monotype::PNull0 => panic!("Cannot call a list value"),
+Monotype::PCons0 => {
+  let n = try_de_pi_thunk(b)?;
+  Some(Thunk::Ctor(Monotype::PCons1(n)))
+}
+Monotype::PCons1(n) => Some(Thunk::Ctor(Monotype::PCons2(n.clone(),b))),
+Monotype::PCons2(_,_) => panic!("Cannot call a list value"),
