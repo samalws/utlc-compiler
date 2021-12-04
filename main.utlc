@@ -139,6 +139,14 @@ bs->s = s -> map bn->F `$ s null :;
 pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
 _pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
 pF  = s -> null? s none (_pF `$ rev s);
+pF! = s -> pF s id id;
 
-main = mainWithInp F10 "startup";
-mainWithInp = n -> s -> s->bs (F0? n "q" `$ c`c `: s) `, (mainWithInp (F-- n) `. bs->s);
+[TODO I would put more descriptive strings here except long strings take forever to compile for some reason]
+
+repeatProg = repeatProgWithInp F10 "startup";
+repeatProgWithInp = n -> s -> s->bs (F0? n "q" `$ c`c `: s) `, (repeatProgWithInp (F-- n) `. bs->s);
+
+factorialProg = (s->bs "cnum:") `, (factorialProgWithInp `. bs->s);
+factorialProgWithInp = s -> (s->bs `$ c`c `: F->s `$ Ffactorial `$ pF! s) `, (factorialProgWithInp `. bs->s);
+
+main = factorialProg;
