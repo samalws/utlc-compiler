@@ -140,7 +140,5 @@ pc  = s -> null? s none `$ F!= F1 (len s) none `$ car s;
 _pF = s -> s (c -> r -> ((c `F< c`0) `| (c `F> c`9)) none `$ _pF r (n -> some `$ (c `F- c`0) `F+ n `F* F10) none) (some F0);
 pF  = s -> null? s none (_pF `$ rev s);
 
-[main = mainWithInp F10 "startup";
-mainWithInp = n -> s -> s->bs (F0? n "q" `$ c`c `: s) `, (mainWithInp (F-- n) `. bs->s);]
-
-main = s->bs `. F->s `. Ffactorial `. bn->F;
+main = mainWithInp F10 "startup";
+mainWithInp = n -> s -> s->bs (F0? n "q" `$ c`c `: s) `, (mainWithInp (F-- n) `. bs->s);

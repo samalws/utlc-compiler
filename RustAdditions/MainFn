@@ -87,7 +87,32 @@ fn mono_to_str(a: B<Thunk>) -> String {
   String::from_utf8(utf8_list).unwrap()
 }
 
+fn str_to_mono(s: String) -> B<Thunk> {
+  let mut ret_val = new_ctor(Monotype::PNull0);
+  let mut tmp_vec = Vec::new();
+  for c in s.bytes() {
+    tmp_vec.push(c);
+  }
+  tmp_vec.reverse();
+  for c in tmp_vec {
+    ret_val = new_ctor(Monotype::PCons2(BigInt::from(c), ret_val));
+  }
+  ret_val
+}
+
 fn main() {
-  let m = new_eval(new_ctor(MAIN_CTOR),new_ctor(pi_ctor(7)));
-  println!("answer: {}", mono_to_str(m));
+  let mut a = new_ctor(MAIN_CTOR);
+  loop {
+    a = new_eval(a, new_ctor(Monotype::PComma0));
+    simplify(a.clone());
+    let t = de_pt_thunk(a.clone());
+    let otp = mono_to_str(t.0);
+    if otp == "q" {
+      break;
+    }
+    println!("{}", otp.substring(1,otp.len()));
+    let mut inp = String::new();
+    std::io::stdin().read_line(&mut inp).unwrap();
+    a = new_eval(t.1, str_to_mono(inp.substring(0,inp.len()-1).to_string()));
+  }
 }
