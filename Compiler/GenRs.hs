@@ -25,8 +25,8 @@ convCtorRs (Var4 s) = convVarNameRs s <> ".clone()"
 convCtorRs (Ctor4 s as) = "new_ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> "))"
 
 convRetCtorRs :: Ctor4 -> String
-convRetCtorRs (Var4 s) = "let x = " <> convVarNameRs s <> ".lock().unwrap().clone(); x"
-convRetCtorRs (Ctor4 s as) = "Thunk::Ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> "))"
+convRetCtorRs (Var4 s) = "let x = " <> convVarNameRs s <> ".lock().unwrap().clone(); Some(x)"
+convRetCtorRs (Ctor4 s as) = "Some(Thunk::Ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> ")))"
 
 convExprRs :: Expr4 -> String
 convExprRs (CtorExpr4 c) = convRetCtorRs c
@@ -48,7 +48,7 @@ ctorDefsRs :: Code4 -> String
 ctorDefsRs c = unlines $ ctorDefRs <$> types4 c
 
 makeMainCtorRs :: String
-makeMainCtorRs = "const mainCtor: Monotype<B<Thunk>> = Monotype::" <> convCtorNameRs (conv23CtorName ("main", 0)) <> "();"
+makeMainCtorRs = "const MAIN_CTOR: Monotype<B<Thunk>> = Monotype::" <> convCtorNameRs (conv23CtorName ("main", 0)) <> "();"
 
 replaceInTemplate :: [(String, String)] -> String -> String
 replaceInTemplate [] s = s

@@ -18,8 +18,6 @@ main = do
   let converted = convCodeRs imports typePostfix evalPostfix mainFn template $ conv34Code $ conv23Code $ conv12Code $ conv01Code frParsed
   if (isRight parsed) then do
     writeFile "otp.rs" converted
-    callCommand "rustc otp.rs"
-    callCommand "./otp"
+    callCommand "CARGO_TARGET_DIR=.target cargo run"
     callCommand "rm otp.rs"
-    callCommand "rm otp"
   else print parsed

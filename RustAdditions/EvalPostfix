@@ -1,0 +1,21 @@
+Monotype::PI0(_) => panic!("Cannot call a number value"),
+Monotype::PSucc0 => {
+  let n = try_de_pi_thunk(b)?;
+  Some(Thunk::Ctor(Monotype::PI0(n+1)))
+},
+Monotype::PAdd0 => {
+  let n = try_de_pi_thunk(b)?;
+  Some(Thunk::Ctor(Monotype::PAdd1(n)))
+},
+Monotype::PAdd1(m) => {
+  let n = try_de_pi_thunk(b)?;
+  Some(Thunk::Ctor(Monotype::PI0(n+m)))
+},
+Monotype::PMul0 => {
+  let n = try_de_pi_thunk(b)?;
+  Some(Thunk::Ctor(Monotype::PMul1(n)))
+},
+Monotype::PMul1(m) => {
+  let n = try_de_pi_thunk(b)?;
+  Some(Thunk::Ctor(Monotype::PI0(n*m)))
+},

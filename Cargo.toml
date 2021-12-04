@@ -1,0 +1,14 @@
+[package]
+name = "utlc_otp"
+version = "0.1.0"
+authors = ["Sam Alws <sam@samalws.com>"]
+edition = "2021"
+
+[[bin]]
+name = "otp"
+path = "otp.rs"
+
+
+[dependencies]
+num = "0.1.36"
+substring = "1.4.0"

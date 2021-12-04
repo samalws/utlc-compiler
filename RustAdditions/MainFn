@@ -1,2 +1,34 @@
+fn de_pi<T>(a: Monotype<T>) -> BigInt {
+  match a {
+    Monotype::PI0(n) => n.clone(),
+    _ => panic!("Expected int")
+  }
+}
+
+fn try_de_pi_thunk(a: B<Thunk>) -> Option<BigInt> {
+  match &*a.lock().unwrap() {
+    Thunk::Ctor(n) => Some(de_pi(n.clone())),
+    _ => None,
+  }
+}
+
+fn de_pi_thunk(a: B<Thunk>) -> BigInt {
+  match &*a.lock().unwrap() {
+    Thunk::Ctor(n) => de_pi(n.clone()),
+    _ => panic!("de_pi_thunk expected ctor"),
+  }
+}
+
+fn pi_ctor<T>(a: u64) -> Monotype<T> {
+  Monotype::PI0(BigInt::from(a))
+}
+
 fn main() {
+  let mut m: B<Thunk> = new_ctor(MAIN_CTOR);
+  m = new_eval(m, new_ctor(pi_ctor(0)));
+  m = new_eval(m, new_ctor(Monotype::PSucc0));
+  m = new_eval(m, new_ctor(Monotype::PAdd0 ));
+  m = new_eval(m, new_ctor(Monotype::PMul0 ));
+  simplify(m.clone());
+  println!("answer: {}", de_pi_thunk(m));
 }

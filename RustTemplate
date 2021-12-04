@@ -1,8 +1,10 @@
+#![allow(non_snake_case, dead_code, unused_variables)]
+
 use std::sync::{Arc, Mutex};
 // [[EXTRA IMPORTS]]
 
 // do I need the derives?
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 enum Monotype<T> {
 // [[TYPE]]
 }
@@ -25,18 +27,18 @@ fn new_eval(a: B<Thunk>, b: B<Thunk>) -> B<Thunk> {
   Arc::new(Mutex::new(Thunk::Eval(a, b)))
 }
 
-fn eval(a: &Monotype<B<Thunk>>, b: B<Thunk>) -> Thunk {
+fn eval(a: &Monotype<B<Thunk>>, b: B<Thunk>) -> Option<Thunk> {
   match a {
 // [[EVAL]]
   }
 }
 
-fn calc(v: B<Thunk>) {
+fn simplify(v: B<Thunk>) {
   let mut stack = Vec::new();
   stack.push(v);
 
   loop {
-    println!("stack len {}", stack.len());
+    // println!("stack len {}", stack.len());
     match stack.pop() {
       None => { break; }
       Some(x) => {
@@ -59,8 +61,11 @@ fn calc(v: B<Thunk>) {
             let av = a.lock().unwrap();
             match &*av {
               Thunk::Ctor(m) => {
-                *xv = eval(m, b);
                 stack.push(x.clone());
+                match eval(m, b.clone()) {
+                  Some(a) => { *xv = a; }
+                  None => { stack.push(b.clone()); }
+                };
               }
               _ => {
                 stack.push(x.clone());
