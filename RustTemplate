@@ -38,7 +38,7 @@ fn simplify(v: B<Thunk>) {
   stack.push(v);
 
   loop {
-    // println!("stack len {}", stack.len());
+    // println!("{}", stack.len());
     match stack.pop() {
       None => { break; }
       Some(x) => {

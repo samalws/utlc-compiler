@@ -23,6 +23,23 @@ fn pi_ctor<T>(a: u64) -> Monotype<T> {
   Monotype::PI0(BigInt::from(a))
 }
 
+fn conv_num(n: BigInt, z: B<Thunk>, s: B<Thunk>, a: B<Thunk>, m: B<Thunk>) -> B<Thunk> {
+  if n == BigInt::from(0) {
+    z
+  } else if n == BigInt::from(1) {
+    new_eval(s,z)
+  } else if n == BigInt::from(2) {
+    new_eval(s.clone(),new_eval(s,z))
+  } else {
+    let conv_again = |nn| conv_num(nn, z.clone(), s.clone(), a.clone(), m.clone());
+    let two = || BigInt::from(2);
+    let ones_digit = conv_again(n.clone() % two());
+    let upper_digits = conv_again(n.clone() / two());
+    let two_conv = conv_again(two());
+    new_eval(new_eval(a.clone(),ones_digit),new_eval(new_eval(m.clone(),two_conv),upper_digits))
+  }
+}
+
 fn de_pt<T>(a: Monotype<T>) -> (T, T) {
   match a {
     Monotype::PT0(a,b) => (a, b),
@@ -71,5 +88,6 @@ fn mono_to_str(a: B<Thunk>) -> String {
 }
 
 fn main() {
-  println!("answer: {}", mono_to_str(new_ctor(MAIN_CTOR)));
+  let m = new_eval(new_ctor(MAIN_CTOR),new_ctor(pi_ctor(7)));
+  println!("answer: {}", mono_to_str(m));
 }
