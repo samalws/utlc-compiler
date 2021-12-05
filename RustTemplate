@@ -1,15 +1,32 @@
 #![allow(non_snake_case, dead_code, unused_variables)]
 
 use std::sync::{Arc, Mutex};
+use std::rc::Rc;
+use std::borrow::Borrow;
 // [[EXTRA IMPORTS]]
+
+/*
+type B<T> = Arc<Mutex<T>>;
+macro_rules! grab_B {
+    ($x:expr) => { ($x).lock().unwrap() }
+}
+macro_rules! new_B {
+    ($x:expr) => { Arc::new(Mutex::new($x)) }
+}
+*/
+type B<T> = Rc<T>;
+macro_rules! grab_B {
+    ($x:expr) => { $x.borrow() }
+}
+macro_rules! new_B {
+    ($x:expr) => { Rc::new($x) }
+}
 
 // do I need the derives?
 #[derive(Clone, Debug)]
 enum Monotype<T> {
 // [[TYPE]]
 }
-
-type B<T> = Arc<Mutex<T>>;
 
 // do I need the derives?
 #[derive(Clone, Debug)]
@@ -20,11 +37,11 @@ enum Thunk {
 }
 
 fn new_ctor(a: Monotype<B<Thunk>>) -> B<Thunk> {
-  Arc::new(Mutex::new(Thunk::Ctor(a)))
+  new_B!(Thunk::Ctor(a))
 }
 
 fn new_eval(a: B<Thunk>, b: B<Thunk>) -> B<Thunk> {
-  Arc::new(Mutex::new(Thunk::Eval(a, b)))
+  new_B!(Thunk::Eval(a, b))
 }
 
 fn eval(a: &Monotype<B<Thunk>>, b: B<Thunk>) -> Option<Thunk> {
@@ -42,11 +59,11 @@ fn simplify(v: B<Thunk>) {
     match stack.pop() {
       None => { break; }
       Some(x) => {
-        let mut xv = x.lock().unwrap();
+        let mut xv = grab_B!(x);
         match xv.clone() {
           Thunk::Ctor(_) => {}
           Thunk::Thunk(a) => {
-            let av = a.lock().unwrap();
+            let av = grab_B!(a);
             match &*av {
               Thunk::Ctor(m) => {
                 *xv = Thunk::Ctor(m.clone());
@@ -58,7 +75,7 @@ fn simplify(v: B<Thunk>) {
             }
           }
           Thunk::Eval(a, b) => {
-            let av = a.lock().unwrap();
+            let av = grab_B!(a);
             match &*av {
               Thunk::Ctor(m) => {
                 stack.push(x.clone());

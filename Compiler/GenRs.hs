@@ -25,7 +25,7 @@ convCtorRs (Var4 s) = convVarNameRs s <> ".clone()"
 convCtorRs (Ctor4 s as) = "new_ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> "))"
 
 convRetCtorRs :: Ctor4 -> String
-convRetCtorRs (Var4 s) = "let x = " <> convVarNameRs s <> ".lock().unwrap().clone(); Some(x)"
+convRetCtorRs (Var4 s) = "let x = grab_B!(" <> convVarNameRs s <> ").clone(); Some(x)"
 convRetCtorRs (Ctor4 s as) = "Some(Thunk::Ctor(Monotype::" <> convCtorNameRs s <> "(" <> intercalate ", " (convCtorRs <$> as) <> ")))"
 
 convExprRs :: Expr4 -> String
